@@ -24,8 +24,8 @@ func TestAccDNSV2Zone_basic(t *testing.T) {
 		CheckDestroy: testAccCheckDNSV2ZoneDestroy,
 		Steps: []resource.TestStep{
 			resource.TestStep{
-				Config:             testAccDNSV2Zone_basic(zoneName),
-				ExpectNonEmptyPlan: true,
+				Config: testAccDNSV2Zone_basic(zoneName),
+				//ExpectNonEmptyPlan: true,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDNSV2ZoneExists("opentelekomcloud_dns_zone_v2.zone_1", &zone),
 					resource.TestCheckResourceAttr(
@@ -33,8 +33,8 @@ func TestAccDNSV2Zone_basic(t *testing.T) {
 				),
 			},
 			resource.TestStep{
-				Config:             testAccDNSV2Zone_update(zoneName),
-				ExpectNonEmptyPlan: true,
+				Config: testAccDNSV2Zone_update(zoneName),
+				//ExpectNonEmptyPlan: true,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("opentelekomcloud_dns_zone_v2.zone_1", "name", zoneName),
 					resource.TestCheckResourceAttr("opentelekomcloud_dns_zone_v2.zone_1", "email", "email2@example.com"),
@@ -154,7 +154,7 @@ func testAccDNSV2Zone_basic(zoneName string) string {
 			email = "email1@example.com"
 			description = "a zone"
 			ttl = 3000
-			type = "PRIMARY"
+			#type = "PRIMARY"
 		}
 	`, zoneName)
 }
@@ -166,7 +166,8 @@ func testAccDNSV2Zone_update(zoneName string) string {
 			email = "email2@example.com"
 			description = "an updated zone"
 			ttl = 6000
-			type = "PRIMARY"
+			#type = "PRIMARY"
+			zone_type = "public"
 		}
 	`, zoneName)
 }
@@ -189,7 +190,7 @@ func testAccDNSV2Zone_timeout(zoneName string) string {
 
 			timeouts {
 				create = "5m"
-				update = "5m"
+				#update = "5m"
 				delete = "5m"
 			}
 		}

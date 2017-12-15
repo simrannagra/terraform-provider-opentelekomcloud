@@ -114,9 +114,9 @@ func testAccPreCheckDNS(t *testing.T) {
 		t.Fatalf("OS_AUTH_URL must be set for acceptance tests")
 	}
 
-	if OS_DNS_ENVIRONMENT == "" {
+	/* if OS_DNS_ENVIRONMENT == "" {
 		t.Skip("This environment does not support DNS tests")
-	}
+	} */
 }
 
 func testAccPreCheckSwift(t *testing.T) {

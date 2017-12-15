@@ -16,7 +16,7 @@ func resourceDNSZoneV2() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceDNSZoneV2Create,
 		Read:   resourceDNSZoneV2Read,
-		Update: resourceDNSZoneV2Update,
+		//Update: resourceDNSZoneV2Update,
 		Delete: resourceDNSZoneV2Delete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -43,36 +43,46 @@ func resourceDNSZoneV2() *schema.Resource {
 			"email": &schema.Schema{
 				Type:     schema.TypeString,
 				Optional: true,
-				ForceNew: false,
+				ForceNew: true,
 			},
-			"type": &schema.Schema{
+			"zone_type": &schema.Schema{
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				Default:  "public",
+				ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
+					return ValidateStringList(v, k, []string{"public", "private"})
+				},
+			},
+			/* "type": &schema.Schema{
 				Type:         schema.TypeString,
 				Optional:     true,
 				Computed:     true,
 				ForceNew:     true,
 				ValidateFunc: resourceDNSZoneV2ValidType,
-			},
-			"attributes": &schema.Schema{
+			}, */
+			/* "attributes": &schema.Schema{
 				Type:     schema.TypeMap,
 				Optional: true,
 				ForceNew: true,
-			},
+			}, */
 			"ttl": &schema.Schema{
 				Type:     schema.TypeInt,
 				Optional: true,
 				Computed: true,
-				ForceNew: false,
+				ForceNew: true,
 			},
 			"description": &schema.Schema{
 				Type:     schema.TypeString,
 				Optional: true,
-				ForceNew: false,
+				ForceNew: true,
 			},
 			"masters": &schema.Schema{
-				Type:     schema.TypeSet,
-				Optional: true,
-				ForceNew: false,
-				Elem:     &schema.Schema{Type: schema.TypeString},
+				Type: schema.TypeSet,
+				//Optional: true,
+				Computed: true,
+				//ForceNew: false,
+				Elem: &schema.Schema{Type: schema.TypeString},
 			},
 			"value_specs": &schema.Schema{
 				Type:     schema.TypeMap,
@@ -90,29 +100,32 @@ func resourceDNSZoneV2Create(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Error creating OpenTelekomCloud DNS client: %s", err)
 	}
 
-	mastersraw := d.Get("masters").(*schema.Set).List()
+	/* mastersraw := d.Get("masters").(*schema.Set).List()
 	masters := make([]string, len(mastersraw))
 	for i, masterraw := range mastersraw {
 		masters[i] = masterraw.(string)
-	}
+	} */
 
-	attrsraw := d.Get("attributes").(map[string]interface{})
+	/* attrsraw := d.Get("attributes").(map[string]interface{})
 	attrs := make(map[string]string, len(attrsraw))
 	for k, v := range attrsraw {
 		attrs[k] = v.(string)
-	}
+	} */
 
+	vs := MapValueSpecs(d)
+	// Add zone_type to the list.  We do this to keep GopherCloud OpenStack standard.
+	vs["zone_type"] = d.Get("zone_type").(string)
 	createOpts := ZoneCreateOpts{
 		zones.CreateOpts{
-			Name:        d.Get("name").(string),
-			Type:        d.Get("type").(string),
-			Attributes:  attrs,
+			Name: d.Get("name").(string),
+			//Type:        d.Get("type").(string),
+			//Attributes:  attrs,
 			TTL:         d.Get("ttl").(int),
 			Email:       d.Get("email").(string),
 			Description: d.Get("description").(string),
-			Masters:     masters,
+			//Masters:     masters,
 		},
-		MapValueSpecs(d),
+		vs,
 	}
 
 	log.Printf("[DEBUG] Create Options: %#v", createOpts)
@@ -157,8 +170,8 @@ func resourceDNSZoneV2Read(d *schema.ResourceData, meta interface{}) error {
 	d.Set("email", n.Email)
 	d.Set("description", n.Description)
 	d.Set("ttl", n.TTL)
-	d.Set("type", n.Type)
-	d.Set("attributes", n.Attributes)
+	//d.Set("type", n.Type)
+	//d.Set("attributes", n.Attributes)
 	d.Set("masters", n.Masters)
 	d.Set("region", GetRegion(d, config))
 
@@ -179,14 +192,14 @@ func resourceDNSZoneV2Update(d *schema.ResourceData, meta interface{}) error {
 	if d.HasChange("ttl") {
 		updateOpts.TTL = d.Get("ttl").(int)
 	}
-	if d.HasChange("masters") {
+	/* if d.HasChange("masters") {
 		mastersraw := d.Get("masters").(*schema.Set).List()
 		masters := make([]string, len(mastersraw))
 		for i, masterraw := range mastersraw {
 			masters[i] = masterraw.(string)
 		}
 		updateOpts.Masters = masters
-	}
+	} */
 	if d.HasChange("description") {
 		updateOpts.Description = d.Get("description").(string)
 	}
