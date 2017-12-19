@@ -8,6 +8,7 @@ import (
 	"github.com/gophercloud/gophercloud"
 	"github.com/gophercloud/gophercloud/openstack/dns/v2/zones"
 
+	//"bytes"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 )
@@ -84,6 +85,24 @@ func resourceDNSZoneV2() *schema.Resource {
 				//ForceNew: false,
 				Elem: &schema.Schema{Type: schema.TypeString},
 			},
+			"router": {
+				Type:     schema.TypeSet,
+				Optional: true,
+				ForceNew: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"router_id": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"router_region": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+					},
+				},
+			},
+
 			"value_specs": &schema.Schema{
 				Type:     schema.TypeMap,
 				Optional: true,
@@ -91,6 +110,24 @@ func resourceDNSZoneV2() *schema.Resource {
 			},
 		},
 	}
+}
+
+func resourceDNSRouter(d *schema.ResourceData) map[string]string {
+	router := d.Get("router").(*schema.Set).List()
+
+	if len(router) > 0 {
+		mp := make(map[string]string)
+		c := router[0].(map[string]interface{})
+
+		if val, ok := c["router_id"]; ok {
+			mp["router_id"] = val.(string)
+		}
+		if val, ok := c["router_region"]; ok {
+			mp["router_region"] = val.(string)
+		}
+		return mp
+	}
+	return nil
 }
 
 func resourceDNSZoneV2Create(d *schema.ResourceData, meta interface{}) error {
@@ -112,9 +149,10 @@ func resourceDNSZoneV2Create(d *schema.ResourceData, meta interface{}) error {
 		attrs[k] = v.(string)
 	} */
 
-	vs := MapValueSpecs(d)
+	vs := MapResourceProp(d, "value_specs")
 	// Add zone_type to the list.  We do this to keep GopherCloud OpenStack standard.
 	vs["zone_type"] = d.Get("zone_type").(string)
+	vs["router"] = resourceDNSRouter(d)
 	createOpts := ZoneCreateOpts{
 		zones.CreateOpts{
 			Name: d.Get("name").(string),
@@ -170,9 +208,13 @@ func resourceDNSZoneV2Read(d *schema.ResourceData, meta interface{}) error {
 	d.Set("email", n.Email)
 	d.Set("description", n.Description)
 	d.Set("ttl", n.TTL)
-	//d.Set("type", n.Type)
-	//d.Set("attributes", n.Attributes)
-	d.Set("masters", n.Masters)
+	/* d.Set("type", n.Type)
+	if err := d.Set("attributes", n.Attributes); err != nil {
+		return fmt.Errorf("[DEBUG] Error saving attributes to state for OpenTelekomCloud DNS zone (%s): %s", d.Id(), err)
+	} */
+	if err = d.Set("masters", n.Masters); err != nil {
+		return fmt.Errorf("[DEBUG] Error saving masters to state for OpenTelekomCloud DNS zone (%s): %s", d.Id(), err)
+	}
 	d.Set("region", GetRegion(d, config))
 	d.Set("zone_type", n.ZoneType)
 	//log.Printf("[DEBUG] resourceDNSZoneV2Read: %+v", n)
