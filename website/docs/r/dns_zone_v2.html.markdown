@@ -20,7 +20,7 @@ resource "opentelekomcloud_dns_zone_v2" "example.com" {
   email = "jdoe@example.com"
   description = "An example zone"
   ttl = 3000
-  type = "PRIMARY"
+  zone_type = "public"
 }
 ```
 
@@ -38,21 +38,25 @@ The following arguments are supported:
 
 * `email` - (Optional) The email contact for the zone record.
 
-* `type` - (Optional) The type of zone. Can either be `PRIMARY` or `SECONDARY`.
+* `zone_type` - (Optional) The type of zone. Can either be `public` or `private`.
   Changing this creates a new zone.
 
-* `attributes` - (Optional) Attributes for the DNS Service scheduler.
-  Changing this creates a new zone.
+* `router` - (Optional) Router configuration block which is required if zone_type is private.
 
 * `ttl` - (Optional) The time to live (TTL) of the zone.
 
 * `description` - (Optional) A description of the zone.
 
-* `masters` - (Optional) An array of master DNS servers. For when `type` is
-  `SECONDARY`.
-
 * `value_specs` - (Optional) Map of additional options. Changing this creates a
   new zone.
+
+The `router` block supports:
+
+* `router_id` - (Required) The router UUID. Changing this creates a new zone.
+
+* `router_region` - (Required) The region of the router. Changing this creates a new zone.
+
+
 
 ## Attributes Reference
 
@@ -61,11 +65,10 @@ The following attributes are exported:
 * `region` - See Argument Reference above.
 * `name` - See Argument Reference above.
 * `email` - See Argument Reference above.
-* `type` - See Argument Reference above.
-* `attributes` - See Argument Reference above.
+* `zone_type` - See Argument Reference above.
 * `ttl` - See Argument Reference above.
 * `description` - See Argument Reference above.
-* `masters` - See Argument Reference above.
+* `masters` - An array of master DNS servers.
 * `value_specs` - See Argument Reference above.
 
 ## Import
