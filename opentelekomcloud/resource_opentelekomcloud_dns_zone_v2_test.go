@@ -155,6 +155,7 @@ func testAccDNSV2Zone_basic(zoneName string) string {
 			description = "a zone"
 			ttl = 3000
 			#type = "PRIMARY"
+			zone_type = "public"
 		}
 	`, zoneName)
 }

@@ -174,6 +174,8 @@ func resourceDNSZoneV2Read(d *schema.ResourceData, meta interface{}) error {
 	//d.Set("attributes", n.Attributes)
 	d.Set("masters", n.Masters)
 	d.Set("region", GetRegion(d, config))
+	d.Set("zone_type", n.ZoneType)
+	//log.Printf("[DEBUG] resourceDNSZoneV2Read: %+v", n)
 
 	return nil
 }
