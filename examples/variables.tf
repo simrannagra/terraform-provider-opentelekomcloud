@@ -42,7 +42,8 @@ variable "ssh_pub_key" {
 
 ### DNS Settings
 variable "dnszone" {
-  default = ""
+  # You may need to change if there are global conflicts
+  default = "opentelekomcloud-test.com"
 }
 
 variable "dnsname" {
