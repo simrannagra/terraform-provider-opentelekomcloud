@@ -11,6 +11,7 @@ import (
 	//"bytes"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
+	"strings"
 )
 
 func resourceDNSZoneV2() *schema.Resource {
@@ -183,6 +184,11 @@ func resourceDNSZoneV2Create(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	_, err = stateConf.WaitForState()
+	if err != nil {
+		return fmt.Errorf(
+			"Error waiting for DNS Zone (%s) to become ACTIVE: %s",
+			n.ID, err)
+	}
 
 	d.SetId(n.ID)
 
@@ -284,8 +290,9 @@ func resourceDNSZoneV2Delete(d *schema.ResourceData, meta interface{}) error {
 
 	log.Printf("[DEBUG] Waiting for DNS Zone (%s) to become available", d.Id())
 	stateConf := &resource.StateChangeConf{
-		Target:     []string{"DELETED"},
-		Pending:    []string{"ACTIVE", "PENDING"},
+		Target: []string{"DELETED"},
+		//we allow to try to delete ERROR zone
+		Pending:    []string{"ACTIVE", "PENDING", "ERROR"},
 		Refresh:    waitForDNSZone(dnsClient, d.Id()),
 		Timeout:    d.Timeout(schema.TimeoutDelete),
 		Delay:      5 * time.Second,
@@ -293,6 +300,11 @@ func resourceDNSZoneV2Delete(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	_, err = stateConf.WaitForState()
+	if err != nil {
+		return fmt.Errorf(
+			"Error waiting for DNS Zone (%s) to delete: %s",
+			d.Id(), err)
+	}
 
 	d.SetId("")
 	return nil
@@ -316,6 +328,13 @@ func resourceDNSZoneV2ValidType(v interface{}, k string) (ws []string, errors []
 	return
 }
 
+func parseStatus(rawStatus string) string {
+	log.Printf("[DEBUG] OpenTelekomCloud DNS Zone (%s) raw status: %s", rawStatus)
+	splits := strings.Split(rawStatus, "_")
+	// rawStatus maybe one of PENDING_CREATE, PENDING_UPDATE, PENDING_DELETE, ACTIVE, or ERROR
+	return splits[0]
+}
+
 func waitForDNSZone(dnsClient *gophercloud.ServiceClient, zoneId string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		zone, err := zones.Get(dnsClient, zoneId).Extract()
@@ -328,6 +347,6 @@ func waitForDNSZone(dnsClient *gophercloud.ServiceClient, zoneId string) resourc
 		}
 
 		log.Printf("[DEBUG] OpenTelekomCloud DNS Zone (%s) current status: %s", zone.ID, zone.Status)
-		return zone, zone.Status, nil
+		return zone, parseStatus(zone.Status), nil
 	}
 }
