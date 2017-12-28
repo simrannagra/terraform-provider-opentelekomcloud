@@ -290,7 +290,7 @@ func resourceDNSZoneV2Delete(d *schema.ResourceData, meta interface{}) error {
 
 	log.Printf("[DEBUG] Waiting for DNS Zone (%s) to become available", d.Id())
 	stateConf := &resource.StateChangeConf{
-		Target:     []string{"DELETED"},
+		Target: []string{"DELETED"},
 		//we allow to try to delete ERROR zone
 		Pending:    []string{"ACTIVE", "PENDING", "ERROR"},
 		Refresh:    waitForDNSZone(dnsClient, d.Id()),
