@@ -47,27 +47,30 @@ func resourceDNSRecordSetV2() *schema.Resource {
 				ForceNew: true,
 			},
 			"description": &schema.Schema{
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: false,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     false,
+				ValidateFunc: resourceValidateDescription,
 			},
 			"records": &schema.Schema{
 				Type:     schema.TypeList,
-				Optional: true,
+				Required: true,
 				ForceNew: false,
 				Elem:     &schema.Schema{Type: schema.TypeString},
+				MinItems: 1,
 			},
 			"ttl": &schema.Schema{
-				Type:     schema.TypeInt,
-				Optional: true,
-				Computed: true,
-				ForceNew: false,
+				Type:         schema.TypeInt,
+				Optional:     true,
+				ForceNew:     false,
+				Default:      300,
+				ValidateFunc: resourceValidateTTL,
 			},
 			"type": &schema.Schema{
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: resourceRecordsetValidateType,
 			},
 			"value_specs": &schema.Schema{
 				Type:     schema.TypeMap,
@@ -121,6 +124,12 @@ func resourceDNSRecordSetV2Create(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	_, err = stateConf.WaitForState()
+
+	if err != nil {
+		return fmt.Errorf(
+			"Error waiting for record set (%s) to become ACTIVE for creation: %s",
+			n.ID, err)
+	}
 
 	id := fmt.Sprintf("%s/%s", zoneID, n.ID)
 	d.SetId(id)
@@ -211,6 +220,11 @@ func resourceDNSRecordSetV2Update(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	_, err = stateConf.WaitForState()
+	if err != nil {
+		return fmt.Errorf(
+			"Error waiting for record set (%s) to become ACTIVE for updation: %s",
+			recordsetID, err)
+	}
 
 	return resourceDNSRecordSetV2Read(d, meta)
 }
@@ -230,13 +244,13 @@ func resourceDNSRecordSetV2Delete(d *schema.ResourceData, meta interface{}) erro
 
 	err = recordsets.Delete(dnsClient, zoneID, recordsetID).ExtractErr()
 	if err != nil {
-		return fmt.Errorf("Error deleting OpenTelekomCloud DNS  record set: %s", err)
+		return fmt.Errorf("Error deleting OpenTelekomCloud DNS record set: %s", err)
 	}
 
 	log.Printf("[DEBUG] Waiting for DNS record set (%s) to be deleted", recordsetID)
 	stateConf := &resource.StateChangeConf{
 		Target:     []string{"DELETED"},
-		Pending:    []string{"ACTIVE", "PENDING"},
+		Pending:    []string{"ACTIVE", "PENDING", "ERROR"},
 		Refresh:    waitForDNSRecordSet(dnsClient, zoneID, recordsetID),
 		Timeout:    d.Timeout(schema.TimeoutDelete),
 		Delay:      5 * time.Second,
@@ -244,6 +258,11 @@ func resourceDNSRecordSetV2Delete(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	_, err = stateConf.WaitForState()
+	if err != nil {
+		return fmt.Errorf(
+			"Error waiting for record set (%s) to become DELETED for deletion: %s",
+			recordsetID, err)
+	}
 
 	d.SetId("")
 	return nil
@@ -261,7 +280,7 @@ func waitForDNSRecordSet(dnsClient *gophercloud.ServiceClient, zoneID, recordset
 		}
 
 		log.Printf("[DEBUG] OpenTelekomCloud DNS record set (%s) current status: %s", recordset.ID, recordset.Status)
-		return recordset, recordset.Status, nil
+		return recordset, parseStatus(recordset.Status), nil
 	}
 }
 
@@ -275,4 +294,36 @@ func parseDNSV2RecordSetID(id string) (string, string, error) {
 	recordsetID := idParts[1]
 
 	return zoneID, recordsetID, nil
+}
+
+func resourceValidateDescription(v interface{}, k string) (ws []string, errors []error) {
+	value := v.(string)
+	if len(value) > 255 {
+		errors = append(errors, fmt.Errorf("%q must less than 255 characters", k))
+	}
+
+	return
+}
+
+var recordSetTypes = [7]string{"A", "AAAA", "MX", "CNAME", "TXT", "NS", "SRV"}
+
+func resourceRecordsetValidateType(v interface{}, k string) (ws []string, errors []error) {
+	value := v.(string)
+	for i := range recordSetTypes {
+		if value == recordSetTypes[i] {
+			return
+		}
+	}
+	errors = append(errors, fmt.Errorf("%q must be one of %v", k, recordSetTypes))
+
+	return
+}
+
+func resourceValidateTTL(v interface{}, k string) (ws []string, errors []error) {
+	value := v.(int)
+	if 300 <= value && value <= 2147483647 {
+		return
+	}
+	errors = append(errors, fmt.Errorf("%q must be [300, 2147483647]", k))
+	return
 }
