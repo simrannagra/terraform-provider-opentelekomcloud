@@ -462,6 +462,12 @@
 			"revisionTime": "2017-10-04T00:41:52Z"
 		},
 		{
+			"checksumSHA1": "1ZRxx4h1YA5OM+OpOT+vKw7V+VU=",
+			"path": "github.com/gophercloud/gophercloud/openstack/networking/v1/vpcs",
+			"revision": "b7d515282f041adf50e99a4a7e0b5187deee8c4a",
+			"revisionTime": "2018-01-07T22:39:44Z"
+		},
+		{
 			"checksumSHA1": "2jpHE834msEDWOnrJOtvlVoCgng=",
 			"path": "github.com/gophercloud/gophercloud/openstack/networking/v2/extensions/fwaas_v2/firewall_groups",
 			"revision": "f8ec1b3d8dea084885975d404872b37be20b3984",
