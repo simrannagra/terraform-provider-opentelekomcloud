@@ -312,10 +312,10 @@
 			"revisionTime": "2017-10-04T00:41:52Z"
 		},
 		{
-			"checksumSHA1": "T4ltorBfbbKKZ2fhdCt/nsT21b0=",
+			"checksumSHA1": "NfZbcNe4DucgfYE6bd3BZuMMhgk=",
 			"path": "github.com/gophercloud/gophercloud/openstack",
-			"revision": "170616dac444c393599f0009da3c116f5f7aa67e",
-			"revisionTime": "2017-12-28T20:29:21Z"
+			"revision": "b7d515282f041adf50e99a4a7e0b5187deee8c4a",
+			"revisionTime": "2018-01-07T22:39:44Z"
 		},
 		{
 			"checksumSHA1": "Qvow3lLvRJ3AFMbixW7GZk7X19k=",
@@ -562,6 +562,24 @@
 			"path": "github.com/gophercloud/gophercloud/openstack/objectstorage/v1/swauth",
 			"revision": "f8ec1b3d8dea084885975d404872b37be20b3984",
 			"revisionTime": "2017-10-04T00:41:52Z"
+		},
+		{
+			"checksumSHA1": "GDumk7vCBVWxHG71z3U78EJa+NM=",
+			"path": "github.com/gophercloud/gophercloud/openstack/rds/v1/datastores",
+			"revision": "b7d515282f041adf50e99a4a7e0b5187deee8c4a",
+			"revisionTime": "2018-01-07T22:39:44Z"
+		},
+		{
+			"checksumSHA1": "pHU8tQHz+i2l87GWzN48OW0Wx9c=",
+			"path": "github.com/gophercloud/gophercloud/openstack/rds/v1/flavors",
+			"revision": "b7d515282f041adf50e99a4a7e0b5187deee8c4a",
+			"revisionTime": "2018-01-07T22:39:44Z"
+		},
+		{
+			"checksumSHA1": "ijTLdkaEimxrTxmPnLtcxmWGzvg=",
+			"path": "github.com/gophercloud/gophercloud/openstack/rds/v1/instances",
+			"revision": "b7d515282f041adf50e99a4a7e0b5187deee8c4a",
+			"revisionTime": "2018-01-07T22:39:44Z"
 		},
 		{
 			"checksumSHA1": "2S29X68Kxca16WwnRGNgCzZ5bsc=",

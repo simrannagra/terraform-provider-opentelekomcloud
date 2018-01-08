@@ -5,12 +5,11 @@ import (
 	"net/url"
 	"reflect"
 
-	"strings"
-
 	"github.com/gophercloud/gophercloud"
 	tokens2 "github.com/gophercloud/gophercloud/openstack/identity/v2/tokens"
 	tokens3 "github.com/gophercloud/gophercloud/openstack/identity/v3/tokens"
 	"github.com/gophercloud/gophercloud/openstack/utils"
+	"strings"
 )
 
 const (
@@ -327,6 +326,18 @@ func NewNetworkV2(client *gophercloud.ProviderClient, eo gophercloud.EndpointOpt
 	return sc, err
 }
 
+// NewVpcV1 creates a ServiceClient that may be used with the v1 VPC for OTC.
+func NewVpcV1(client *gophercloud.ProviderClient, eo gophercloud.EndpointOpts) (*gophercloud.ServiceClient, error) {
+	pid, e := GetProjectId(client)
+	if e != nil {
+		return nil, e
+	}
+
+	sc, err := initClientOpts(client, eo, "network")
+	sc.ResourceBase = sc.Endpoint + "v1/" + pid + "/"
+	return sc, err
+}
+
 // NewOtcV1 creates a ServiceClient that may be used with the v1 network package.
 func NewOtcV1(client *gophercloud.ProviderClient, eo gophercloud.EndpointOpts, otctype string) (*gophercloud.ServiceClient, error) {
 	sc, err := initClientOpts(client, eo, "compute")
@@ -400,4 +411,15 @@ func NewSmnServiceV2(client *gophercloud.ProviderClient, eo gophercloud.Endpoint
 	sc.ResourceBase = sc.Endpoint + "notifications/"
 	sc.Type = "smn"
 	return sc, err
+}
+
+//NewRdsServiceV1 creates the a ServiceClient that may be used to access the v1
+//rds service which is a service of db instances management.
+func NewRdsServiceV1(client *gophercloud.ProviderClient, eo gophercloud.EndpointOpts) (*gophercloud.ServiceClient, error) {
+	newsc, err := initClientOpts(client, eo, "compute")
+	rdsendpoint := strings.Replace(strings.Replace(newsc.Endpoint, "ecs", "rds", 1), "/v2/", "/rds/v1/", 1)
+	newsc.Endpoint = rdsendpoint
+	newsc.ResourceBase = rdsendpoint
+	newsc.Type = "rds"
+	return newsc, err
 }
