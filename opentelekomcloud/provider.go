@@ -161,6 +161,7 @@ func Provider() terraform.ResourceProvider {
 			"opentelekomcloud_networking_secgroup_v2": dataSourceNetworkingSecGroupV2(),
 			"opentelekomcloud_s3_bucket_object":       dataSourceS3BucketObject(),
 			"opentelekomcloud_rds_flavors_v1":         dataSourceRdsFlavorV1(),
+			"opentelekomcloud_vpc_v1":                 dataSourceVirtualPrivateCloudVpcV1(),
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
@@ -203,6 +204,7 @@ func Provider() terraform.ResourceProvider {
 			"opentelekomcloud_smn_topic_v2":                    resourceTopic(),
 			"opentelekomcloud_smn_subscription_v2":             resourceSubscription(),
 			"opentelekomcloud_rds_instance_v1":                 resourceRdsInstance(),
+			"opentelekomcloud_vpc_v1":                          resourceVirtualPrivateCloudV1(),
 		},
 
 		ConfigureFunc: configureProvider,
