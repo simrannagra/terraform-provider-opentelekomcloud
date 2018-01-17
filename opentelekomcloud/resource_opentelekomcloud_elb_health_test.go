@@ -93,9 +93,14 @@ func testAccCheckELBHealthExists(t *testing.T, n string, health *healthcheck.Hea
 }
 
 var TestAccELBHealthConfig_basic = fmt.Sprintf(`
+resource "opentelekomcloud_vpc_v1" "vpc_1" {
+	name = "terraform-testacc-vpc-elb"
+	cidr= "192.168.0.0/16"
+}
+
 resource "opentelekomcloud_elb_loadbalancer" "loadbalancer_1" {
   name = "loadbalancer_1"
-  vpc_id = "%s"
+  vpc_id = "${opentelekomcloud_vpc_v1.vpc_1.id}"
   type = "External"
   bandwidth = 5
 }
@@ -124,12 +129,17 @@ resource "opentelekomcloud_elb_health" "health_1" {
     delete = "5m"
   }
 }
-`, OS_VPC_ID)
+`)
 
 var TestAccELBHealthConfig_update = fmt.Sprintf(`
+resource "opentelekomcloud_vpc_v1" "vpc_1" {
+	name = "terraform-testacc-vpc-elb"
+	cidr= "192.168.0.0/16"
+}
+
 resource "opentelekomcloud_elb_loadbalancer" "loadbalancer_1" {
   name = "loadbalancer_1"
-  vpc_id = "%s"
+  vpc_id = "${opentelekomcloud_vpc_v1.vpc_1.id}"
   type = "External"
   bandwidth = 5
 }
@@ -158,4 +168,4 @@ resource "opentelekomcloud_elb_health" "health_1" {
     delete = "5m"
   }
 }
-`, OS_VPC_ID)
+`)
