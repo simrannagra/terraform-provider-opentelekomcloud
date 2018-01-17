@@ -137,6 +137,14 @@ func testAccPreCheckAdminOnly(t *testing.T) {
 	}
 }
 
+func testAccPreCheckVPCAndECS(t *testing.T) {
+
+	if OS_VPC_ID == "" || OS_SERVER_ID == "" || OS_SERVER_ADDRESS == "" {
+		t.Skip("Skipping test because it requires OS_VPC_ID, OS_SERVER_ID, and OS_SERVER_ADDRESS. " +
+			"Also the ECS server must belong to same VPC")
+	}
+}
+
 func TestProvider(t *testing.T) {
 	if err := Provider().(*schema.Provider).InternalValidate(); err != nil {
 		t.Fatalf("err: %s", err)
