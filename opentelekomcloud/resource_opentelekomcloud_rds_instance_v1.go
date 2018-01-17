@@ -52,6 +52,9 @@ func resourceRdsInstance() *schema.Resource {
 							Type:     schema.TypeString,
 							Required: true,
 							ForceNew: true,
+							ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
+								return ValidateStringList(v, k, []string{"PostgreSQL", "SQLServer", "MySQL"})
+							},
 						},
 						"version": &schema.Schema{
 							Type:     schema.TypeString,
@@ -162,7 +165,6 @@ func resourceRdsInstance() *schema.Resource {
 			"ha": &schema.Schema{
 				Type:     schema.TypeList,
 				Optional: true,
-				Computed: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -173,6 +175,9 @@ func resourceRdsInstance() *schema.Resource {
 						"replicationmode": &schema.Schema{
 							Type:     schema.TypeString,
 							Optional: true,
+							ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
+								return ValidateStringList(v, k, []string{"async", "sync", "semisync"})
+							},
 						},
 					}},
 			},
@@ -278,11 +283,13 @@ func resourceInstanceHa(d *schema.ResourceData) instances.HaOps {
 	log.Printf("[DEBUG] haRaw: %+v", haRaw)
 	if len(haRaw) == 1 {
 		ha.Enable = haRaw[0].(map[string]interface{})["enable"].(bool)
-		ha.ReplicationMode = haRaw[0].(map[string]interface{})["replicationmode"].(string)
+		if ha.Enable == true {
+			ha.ReplicationMode = haRaw[0].(map[string]interface{})["replicationmode"].(string)
+		}
 	} else {
 		ha.Enable = false
 	}
-	log.Printf("[DEBUG] backupStrategy: %+v", ha)
+	log.Printf("[DEBUG] ha: %+v", ha)
 	return ha
 }
 
