@@ -1074,5 +1074,5 @@
 			"versionExact": "v1.6.1"
 		}
 	],
-	"rootPath": "github.com/freesky-edward/terraform-provider-opentelekomcloud"
+	"rootPath": "github.com/gator1/terraform-provider-opentelekomcloud"
 }
