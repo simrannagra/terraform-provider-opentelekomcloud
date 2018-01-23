@@ -302,8 +302,8 @@
 		{
 			"checksumSHA1": "Rc4+WQskkRRJabi9YcYJCkUh318=",
 			"path": "github.com/gophercloud/gophercloud",
-			"revision": "170616dac444c393599f0009da3c116f5f7aa67e",
-			"revisionTime": "2017-12-28T20:29:21Z"
+			"revision": "43835f028131186b6b6e50eaa0886c6df7bf8af9",
+			"revisionTime": "2018-01-22T15:30:16Z"
 		},
 		{
 			"checksumSHA1": "b7g9TcU1OmW7e2UySYeOAmcfHpY=",
@@ -324,10 +324,10 @@
 			"revisionTime": "2017-12-13T04:15:48Z"
 		},
 		{
-			"checksumSHA1": "B4IXSmq364HcBruvvV0QjDFxZgc=",
+			"checksumSHA1": "XtrrNlDg3gZdC+mN95qWHtmcV1Q=",
 			"path": "github.com/gophercloud/gophercloud/openstack/blockstorage/v2/volumes",
-			"revision": "f8ec1b3d8dea084885975d404872b37be20b3984",
-			"revisionTime": "2017-10-04T00:41:52Z"
+			"revision": "43835f028131186b6b6e50eaa0886c6df7bf8af9",
+			"revisionTime": "2018-01-22T15:30:16Z"
 		},
 		{
 			"checksumSHA1": "NqsuczNpd2Upm3O+IduWzq06CTE=",
@@ -1074,5 +1074,5 @@
 			"versionExact": "v1.6.1"
 		}
 	],
-	"rootPath": "github.com/gator1/terraform-provider-opentelekomcloud"
+	"rootPath": "github.com/freesky-edward/terraform-provider-opentelekomcloud"
 }
