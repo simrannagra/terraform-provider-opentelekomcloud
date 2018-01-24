@@ -100,6 +100,10 @@ func resourceBlockStorageVolumeV2() *schema.Resource {
 				Type:     schema.TypeMap,
 				Optional: true,
 			},
+			"scheduler_hints": &schema.Schema{
+				Type:     schema.TypeMap,
+				Optional: true,
+			},
 			"attachment": &schema.Schema{
 				Type:     schema.TypeSet,
 				Computed: true,
@@ -131,6 +135,14 @@ func resourceContainerMetadataV2(d *schema.ResourceData) map[string]string {
 		m[key] = val.(string)
 	}
 	return m
+}
+
+func resourceSchedulerHints(d *schema.ResourceData) map[string]string {
+	hint := make(map[string]string)
+	for key, val := range d.Get("scheduler_hints").(map[string]interface{}) {
+		hint[key] = val.(string)
+	}
+	return hint
 }
 
 func resourceContainerTags(d *schema.ResourceData) map[string]string {
@@ -175,6 +187,7 @@ func resourceBlockStorageVolumeV2Create(d *schema.ResourceData, meta interface{}
 		SourceReplica:      d.Get("source_replica").(string),
 		SourceVolID:        d.Get("source_vol_id").(string),
 		VolumeType:         d.Get("volume_type").(string),
+		SchedulerHints:     resourceSchedulerHints(d),
 	}
 
 	log.Printf("[DEBUG] Create Options: %#v", createOpts)
