@@ -179,9 +179,10 @@ func UpdateFlavorRef(client *gophercloud.ServiceClient, ops UpdateFlavorOpsBuild
 func Delete(client *gophercloud.ServiceClient, id string) (r DeleteResult) {
 	RequestOpts.OkCodes = []int{202}
 	RequestOpts.JSONBody = nil
+	JSONBody := make(map[string]interface{})
 	_, r.Err = client.Delete(deleteURL(client, id), &gophercloud.RequestOpts{
 		OkCodes:     []int{202},
-		MoreHeaders: RequestOpts.MoreHeaders, JSONBody: nil,
+		MoreHeaders: RequestOpts.MoreHeaders, JSONBody: JSONBody,
 	})
 	return
 }
