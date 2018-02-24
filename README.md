@@ -7,6 +7,19 @@ Terraform OpenTelekomCloud Provider
 
 <img src="https://cdn.rawgit.com/hashicorp/terraform-website/master/content/source/assets/images/logo-hashicorp.svg" width="600px">
 
+Terraform-Provider-OpenTelekomcloud is a Terraform Provider for OpenTelekomcloud.
+It is based on [Terraform-Provider-OpenStack](https://github.com/terraform-providers/terraform-provider-openstack)
+which is a standard Terraform OpenStack Provider. Terraform-Provider-OpenTelekomcloud has renamed OpenStack with OpenTelekomcloud
+and added some enhancements to interact with the many resources supported by OpenTelekomcloud.
+
+## Enhancements
+
+- **ces**: cloud eye service
+- **rds**: relational database service
+- **obs**: object storage service
+- **elb**: elastic load balance service
+- **smn**: simple message notification service
+
 Requirements
 ------------
 
@@ -17,16 +30,16 @@ Requirements
 Building The Provider
 ---------------------
 
-Clone repository to: `$GOPATH/src/github.com/gator1/terraform-provider-opentelekomcloud`
+Clone repository to: `$GOPATH/src/github.com/huaweicloud/terraform-provider-opentelekomcloud`
 
 ```sh
-$ go get github.com/gator1/terraform-provider-opentelekomcloud
+$ go get github.com/huaweicloud/terraform-provider-opentelekomcloud
 ```
 
 Enter the provider directory and build the provider
 
 ```sh
-$ cd $GOPATH/src/github.com/gator1/terraform-provider-opentelekomcloud
+$ cd $GOPATH/src/github.com/huaweicloud/terraform-provider-opentelekomcloud
 $ make build
 ```
 
@@ -38,8 +51,8 @@ $ wget https://storage.googleapis.com/golang/go1.9.1.linux-amd64.tar.gz
 $ sudo tar -C /usr/local -xzf go1.9.1.linux-amd64.tar.gz
 $ export PATH=$PATH:/usr/local/go/bin # You should put in your .profile or .bashrc
 $ go version # to verify it runs and version #
-$ go get github.com/gator1/terraform-provider-opentelekomcloud
-$ cd ~/go/src/github.com/gator1/terraform-provider-opentelekomcloud/
+$ go get github.com/huaweicloud/terraform-provider-opentelekomcloud
+$ cd ~/go/src/github.com/huaweicloud/terraform-provider-opentelekomcloud/
 $ make build
 $ export PATH=$PATH:~/go/bin # You should put in your .profile or .bashrc
 $ wget https://releases.hashicorp.com/terraform/0.10.7/terraform_0.10.7_linux_amd64.zip
@@ -55,7 +68,7 @@ $ terraform apply # Should all work if everything is correct.
 
 ## Quick Start
 
-```hcl
+```otcl
 # Configure the OpenTelekomCloud Provider
 # This will work with a single defined/default network, otherwise you need to specify network
 # to fix errrors about multiple networks found.
@@ -78,7 +91,7 @@ resource "opentelekomcloud_compute_instance_v2" "test-server" {
 
 ### Full Example
 ----------------------
-Please see full example at https://github.com/gator1/terraform-provider-opentelekomcloud/tree/master/examples, 
+Please see full example at https://github.com/huaweicloud/terraform-provider-opentelekomcloud/tree/master/examples, 
 you must fill in the required variables in variables.tf.
 
 Using the provider
@@ -112,3 +125,8 @@ In order to run the full suite of Acceptance tests, run `make testacc`.
 ```sh
 $ make testacc
 ```
+
+## License
+
+Terraform-Provider-OpenTelekomcloud is under the Mozilla Public License 2.0. See the [LICENSE](LICENSE) file for details.
+
