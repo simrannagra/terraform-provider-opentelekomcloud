@@ -23,7 +23,7 @@ func resourceVirtualPrivateCloudV1() *schema.Resource {
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(10 * time.Minute),
-			Delete: schema.DefaultTimeout(10 * time.Minute),
+			Delete: schema.DefaultTimeout(3 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{ //request and response parameters
