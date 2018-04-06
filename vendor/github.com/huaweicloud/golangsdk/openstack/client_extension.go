@@ -96,7 +96,12 @@ func NewAutoScalingService(client *golangsdk.ProviderClient, eo golangsdk.Endpoi
 // NewKmsKeyV1 creates a ServiceClient that may be used to access the v1
 // kms key service.
 func NewKmsKeyV1(client *golangsdk.ProviderClient, eo golangsdk.EndpointOpts) (*golangsdk.ServiceClient, error) {
-	sc, err := initClientOpts(client, eo, "kms")
+	sc, err := initClientOpts(client, eo, "compute")
+	sc.Endpoint = strings.Replace(sc.Endpoint, "ecs", "kms", 1)
+	sc.Endpoint = sc.Endpoint[:strings.LastIndex(sc.Endpoint, "v2")+3]
+	sc.Endpoint = strings.Replace(sc.Endpoint, "v2", "v1.0", 1)
+	sc.ResourceBase = sc.Endpoint
+	sc.Type = "kms"
 	return sc, err
 }
 
@@ -110,6 +115,14 @@ func NewElasticLoadBalancer(client *golangsdk.ProviderClient, eo golangsdk.Endpo
 	sc.Endpoint = sc.Endpoint[:strings.LastIndex(sc.Endpoint, "v2")+3]
 	sc.Endpoint = strings.Replace(sc.Endpoint, "v2", "v1.0", 1)
 	sc.ResourceBase = sc.Endpoint
+	return sc, err
+}
+
+// NewNetworkV1 creates a ServiceClient that may be used with the v1 network
+// package.
+func NewNetworkV1(client *golangsdk.ProviderClient, eo golangsdk.EndpointOpts) (*golangsdk.ServiceClient, error) {
+	sc, err := initClientOpts(client, eo, "network")
+	sc.ResourceBase = sc.Endpoint + "v1/"
 	return sc, err
 }
 

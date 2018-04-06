@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/gophercloud/gophercloud/openstack/networking/v1/vpcs"
+	"github.com/huaweicloud/golangsdk/openstack/networking/v1/vpcs"
 
 	"github.com/hashicorp/terraform/helper/schema"
 )
@@ -62,7 +62,7 @@ func dataSourceVirtualPrivateCloudVpcV1() *schema.Resource {
 
 func dataSourceVirtualPrivateCloudV1Read(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*Config)
-	vpcClient, err := config.vpcV1Client(GetRegion(d, config))
+	vpcClient, err := config.networkingV1Client(GetRegion(d, config))
 
 	listOpts := vpcs.ListOpts{
 		ID:     d.Get("id").(string),

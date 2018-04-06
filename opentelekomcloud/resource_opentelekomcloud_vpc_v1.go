@@ -2,13 +2,13 @@ package opentelekomcloud
 
 import (
 	"fmt"
-	"github.com/gophercloud/gophercloud/openstack/networking/v1/vpcs"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/huaweicloud/golangsdk/openstack/networking/v1/vpcs"
 	"log"
 	"time"
 
-	"github.com/gophercloud/gophercloud"
 	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/huaweicloud/golangsdk"
 )
 
 func resourceVirtualPrivateCloudV1() *schema.Resource {
@@ -61,7 +61,7 @@ func resourceVirtualPrivateCloudV1() *schema.Resource {
 
 func resourceVirtualPrivateCloudV1Create(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*Config)
-	vpcClient, err := config.vpcV1Client(GetRegion(d, config))
+	vpcClient, err := config.networkingV1Client(GetRegion(d, config))
 
 	log.Printf("[DEBUG] Value of vpcClient: %#v", vpcClient)
 
@@ -104,14 +104,14 @@ func resourceVirtualPrivateCloudV1Create(d *schema.ResourceData, meta interface{
 
 func resourceVirtualPrivateCloudV1Read(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*Config)
-	vpcClient, err := config.vpcV1Client(GetRegion(d, config))
+	vpcClient, err := config.networkingV1Client(GetRegion(d, config))
 	if err != nil {
 		return fmt.Errorf("Error creating OpenTelekomCloud Vpc client: %s", err)
 	}
 
 	n, err := vpcs.Get(vpcClient, d.Id()).Extract()
 	if err != nil {
-		if _, ok := err.(gophercloud.ErrDefault404); ok {
+		if _, ok := err.(golangsdk.ErrDefault404); ok {
 			d.SetId("")
 			return nil
 		}
@@ -133,7 +133,7 @@ func resourceVirtualPrivateCloudV1Read(d *schema.ResourceData, meta interface{})
 
 func resourceVirtualPrivateCloudV1Update(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*Config)
-	vpcClient, err := config.vpcV1Client(GetRegion(d, config))
+	vpcClient, err := config.networkingV1Client(GetRegion(d, config))
 	if err != nil {
 		return fmt.Errorf("Error creating OpenTelekomCloud Vpc: %s", err)
 	}
@@ -166,7 +166,7 @@ func resourceVirtualPrivateCloudV1Delete(d *schema.ResourceData, meta interface{
 	log.Printf("[DEBUG] Destroy vpc: %s", d.Id())
 
 	config := meta.(*Config)
-	vpcClient, err := config.vpcV1Client(GetRegion(d, config))
+	vpcClient, err := config.networkingV1Client(GetRegion(d, config))
 	if err != nil {
 		return fmt.Errorf("Error creating OpenTelekomCloud vpc: %s", err)
 	}
@@ -189,7 +189,7 @@ func resourceVirtualPrivateCloudV1Delete(d *schema.ResourceData, meta interface{
 	return nil
 }
 
-func waitForVpcActive(vpcClient *gophercloud.ServiceClient, vpcId string) resource.StateRefreshFunc {
+func waitForVpcActive(vpcClient *golangsdk.ServiceClient, vpcId string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		n, err := vpcs.Get(vpcClient, vpcId).Extract()
 		if err != nil {
@@ -205,14 +205,14 @@ func waitForVpcActive(vpcClient *gophercloud.ServiceClient, vpcId string) resour
 	}
 }
 
-func waitForVpcDelete(vpcClient *gophercloud.ServiceClient, vpcId string) resource.StateRefreshFunc {
+func waitForVpcDelete(vpcClient *golangsdk.ServiceClient, vpcId string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		log.Printf("[DEBUG] Attempting to delete OpenTelekomCloud vpc %s.\n", vpcId)
 
 		r, err := vpcs.Get(vpcClient, vpcId).Extract()
 		log.Printf("[DEBUG] Value after extract: %#v", r)
 		if err != nil {
-			if _, ok := err.(gophercloud.ErrDefault404); ok {
+			if _, ok := err.(golangsdk.ErrDefault404); ok {
 				log.Printf("[DEBUG] Successfully deleted OpenTelekomCloud vpc %s", vpcId)
 				return r, "DELETED", nil
 			}
@@ -223,11 +223,11 @@ func waitForVpcDelete(vpcClient *gophercloud.ServiceClient, vpcId string) resour
 		log.Printf("[DEBUG] Value if error: %#v", err)
 
 		if err != nil {
-			if _, ok := err.(gophercloud.ErrDefault404); ok {
+			if _, ok := err.(golangsdk.ErrDefault404); ok {
 				log.Printf("[DEBUG] Successfully deleted OpenTelekomCloud vpc %s", vpcId)
 				return r, "DELETED", nil
 			}
-			if errCode, ok := err.(gophercloud.ErrUnexpectedResponseCode); ok {
+			if errCode, ok := err.(golangsdk.ErrUnexpectedResponseCode); ok {
 				if errCode.Actual == 409 {
 					return r, "ACTIVE", nil
 				}

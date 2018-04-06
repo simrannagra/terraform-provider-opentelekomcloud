@@ -910,10 +910,10 @@
 			"revisionTime": "2018-02-24T07:23:49Z"
 		},
 		{
-			"checksumSHA1": "l7k3D1MR0PFMNGMkCaRCvEr4Yp8=",
+			"checksumSHA1": "UrKVrkUxv6iPvgg3LBUTgKzesCw=",
 			"path": "github.com/huaweicloud/golangsdk/openstack",
-			"revision": "98f31e4f21bec892b331ee55c5a5fff72d407abc",
-			"revisionTime": "2018-02-26T07:57:01Z"
+			"revision": "904d4b2ece4379bc48a4469453d913c005d67d50",
+			"revisionTime": "2018-03-29T08:22:40Z"
 		},
 		{
 			"checksumSHA1": "rxzrL96yNxCPSnCzErD87sSpcLs=",
@@ -938,6 +938,18 @@
 			"path": "github.com/huaweicloud/golangsdk/openstack/identity/v3/tokens",
 			"revision": "888f77744ab7c65bb4d448d5b5313edba29e76c7",
 			"revisionTime": "2018-02-24T07:23:49Z"
+		},
+		{
+			"checksumSHA1": "BeVcL4FNVGe8c5Vxha/xFyz6dlA=",
+			"path": "github.com/huaweicloud/golangsdk/openstack/networking/v1/vpcs",
+			"revision": "904d4b2ece4379bc48a4469453d913c005d67d50",
+			"revisionTime": "2018-03-29T08:22:40Z"
+		},
+		{
+			"checksumSHA1": "ZjwgH1I3HXcTbqwlvjOGCcVWW/w=",
+			"path": "github.com/huaweicloud/golangsdk/openstack/networking/v2/peerings",
+			"revision": "904d4b2ece4379bc48a4469453d913c005d67d50",
+			"revisionTime": "2018-03-29T08:22:40Z"
 		},
 		{
 			"checksumSHA1": "O9n6p7B1QqU6ryYgc8hD9sxIq+A=",
