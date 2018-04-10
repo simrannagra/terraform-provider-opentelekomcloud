@@ -80,12 +80,10 @@ func resourceVPCPeeringAccepterV2Create(d *schema.ResourceData, meta interface{}
 	}
 
 	id := d.Get("vpc_peering_connection_id").(string)
-	d.SetId(id)
 
 	n, err := peerings.Get(peeringClient, id).Extract()
 	log.Printf("[DEBUG] Output of n: %s", n)
 	if err != nil {
-		d.SetId("")
 		return fmt.Errorf("Error retrieving OpenTelekomCloud Vpc Peering Connection: %s", err)
 	}
 
