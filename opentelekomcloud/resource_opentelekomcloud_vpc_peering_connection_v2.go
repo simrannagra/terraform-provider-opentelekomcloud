@@ -29,10 +29,10 @@ func resourceVpcPeeringConnectionV2() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
+				ForceNew: true,
 			},
 			"id": &schema.Schema{
 				Type:     schema.TypeString,
-				Optional: true,
 				Computed: true,
 			},
 			"name": &schema.Schema{
@@ -43,7 +43,6 @@ func resourceVpcPeeringConnectionV2() *schema.Resource {
 			},
 			"status": &schema.Schema{
 				Type:     schema.TypeString,
-				ForceNew: false,
 				Computed: true,
 			},
 			"vpc_id": &schema.Schema{
@@ -60,6 +59,7 @@ func resourceVpcPeeringConnectionV2() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
+				Computed: true,
 			},
 		},
 	}

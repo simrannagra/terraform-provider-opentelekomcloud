@@ -86,7 +86,7 @@ func TestAccOTCVpcV1_timeout(t *testing.T) {
 
 func testAccCheckOTCVpcV1Destroy(s *terraform.State) error {
 	config := testAccProvider.Meta().(*Config)
-	vpcClient, err := config.vpcV1Client(OS_REGION_NAME)
+	vpcClient, err := config.networkingV1Client(OS_REGION_NAME)
 	if err != nil {
 		return fmt.Errorf("Error creating OpenTelekomCloud vpc client: %s", err)
 	}
@@ -117,7 +117,7 @@ func testAccCheckOTCVpcV1Exists(n string, vpc *vpcs.Vpc) resource.TestCheckFunc 
 		}
 
 		config := testAccProvider.Meta().(*Config)
-		vpcClient, err := config.vpcV1Client(OS_REGION_NAME)
+		vpcClient, err := config.networkingV1Client(OS_REGION_NAME)
 		if err != nil {
 			return fmt.Errorf("Error creating OpenTelekomCloud vpc client: %s", err)
 		}

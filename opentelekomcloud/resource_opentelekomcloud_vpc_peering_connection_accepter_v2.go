@@ -30,10 +30,10 @@ func resourceVpcPeeringConnectionAccepterV2() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
+				ForceNew: true,
 			},
 			"name": &schema.Schema{
 				Type:     schema.TypeString,
-				Optional: true,
 				Computed: true,
 			},
 			"vpc_peering_connection_id": &schema.Schema{
@@ -47,7 +47,6 @@ func resourceVpcPeeringConnectionAccepterV2() *schema.Resource {
 			},
 			"status": &schema.Schema{
 				Type:     schema.TypeString,
-				Optional: true,
 				Computed: true,
 			},
 			"vpc_id": &schema.Schema{
@@ -72,9 +71,9 @@ func resourceVpcPeeringConnectionAccepterV2() *schema.Resource {
 func resourceVPCPeeringAccepterV2Create(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*Config)
 	peeringClient, err := config.networkingHwV2Client(GetRegion(d, config))
-	log.Printf("[DEBUG] Output of peeringClient: %s", peeringClient)
-	log.Printf("[DEBUG] Output of d: %s", d)
-	log.Printf("[DEBUG] Output of meta: %s", meta)
+	log.Printf("[DEBUG] Output of peeringClient: %v", peeringClient)
+	log.Printf("[DEBUG] Output of d: %v", d)
+	log.Printf("[DEBUG] Output of meta: %v", meta)
 
 	if err != nil {
 		return fmt.Errorf("Error creating OpenTelekomCloud Peering client: %s", err)
