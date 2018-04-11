@@ -18,24 +18,24 @@ func TestAccOTCVpcPeeringConnectionV2DataSource_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckOTCVpcPeeringConnectionV2DataSourceID("data.opentelekomcloud_vpc_peering_connection_v2.by_id"),
 					resource.TestCheckResourceAttr(
-						"opentelekomcloud_vpc_peering_connection_v2.peering_1", "name", "opentelekomcloud_peering"),
+						"data.opentelekomcloud_vpc_peering_connection_v2.by_id", "name", "opentelekomcloud_peering"),
 					resource.TestCheckResourceAttr(
-						"opentelekomcloud_vpc_peering_connection_v2.peering_1", "status", "ACTIVE"),
+						"data.opentelekomcloud_vpc_peering_connection_v2.by_id", "status", "ACTIVE"),
 					testAccCheckOTCVpcPeeringConnectionV2DataSourceID("data.opentelekomcloud_vpc_peering_connection_v2.by_vpc_id"),
 					resource.TestCheckResourceAttr(
-						"opentelekomcloud_vpc_peering_connection_v2.peering_1", "name", "opentelekomcloud_peering"),
+						"data.opentelekomcloud_vpc_peering_connection_v2.by_vpc_id", "name", "opentelekomcloud_peering"),
 					resource.TestCheckResourceAttr(
-						"opentelekomcloud_vpc_peering_connection_v2.peering_1", "status", "ACTIVE"),
+						"data.opentelekomcloud_vpc_peering_connection_v2.by_vpc_id", "status", "ACTIVE"),
 					testAccCheckOTCVpcPeeringConnectionV2DataSourceID("data.opentelekomcloud_vpc_peering_connection_v2.by_peer_vpc_id"),
 					resource.TestCheckResourceAttr(
-						"opentelekomcloud_vpc_peering_connection_v2.peering_1", "name", "opentelekomcloud_peering"),
+						"data.opentelekomcloud_vpc_peering_connection_v2.by_peer_vpc_id", "name", "opentelekomcloud_peering"),
 					resource.TestCheckResourceAttr(
-						"opentelekomcloud_vpc_peering_connection_v2.peering_1", "status", "ACTIVE"),
+						"data.opentelekomcloud_vpc_peering_connection_v2.by_peer_vpc_id", "status", "ACTIVE"),
 					testAccCheckOTCVpcPeeringConnectionV2DataSourceID("data.opentelekomcloud_vpc_peering_connection_v2.by_vpc_ids"),
 					resource.TestCheckResourceAttr(
-						"opentelekomcloud_vpc_peering_connection_v2.peering_1", "name", "opentelekomcloud_peering"),
+						"data.opentelekomcloud_vpc_peering_connection_v2.by_vpc_ids", "name", "opentelekomcloud_peering"),
 					resource.TestCheckResourceAttr(
-						"opentelekomcloud_vpc_peering_connection_v2.peering_1", "status", "ACTIVE"),
+						"data.opentelekomcloud_vpc_peering_connection_v2.by_vpc_ids", "status", "ACTIVE"),
 				),
 			},
 		},
