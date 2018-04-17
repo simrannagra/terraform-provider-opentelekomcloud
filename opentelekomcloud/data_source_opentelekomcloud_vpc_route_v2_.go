@@ -50,7 +50,6 @@ func dataSourceVPCRouteV2() *schema.Resource {
 func dataSourceVpcRouteV2Read(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*Config)
 	vpcRouteClient, err := config.networkingHwV2Client(GetRegion(d, config))
-	log.Printf("[DEBUG] vpcRouteClient %v", vpcRouteClient)
 	listOpts := routes.ListOpts{
 		Type:        d.Get("type").(string),
 		Destination: d.Get("destination").(string),
@@ -77,9 +76,8 @@ func dataSourceVpcRouteV2Read(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	Route := refinedRoutes[0]
-	log.Printf("[DEBUG] refinedRoutes %s", refinedRoutes[0])
 
-	log.Printf("[DEBUG] Retrieved Vpc Routes using given filter %s: %+v", Route.RouteID, Route)
+	log.Printf("[INFO] Retrieved Vpc Route using given filter %s: %+v", Route.RouteID, Route)
 	d.SetId(Route.RouteID)
 
 	d.Set("type", Route.Type)

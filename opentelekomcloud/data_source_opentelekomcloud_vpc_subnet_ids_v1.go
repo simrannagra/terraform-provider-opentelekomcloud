@@ -2,7 +2,6 @@ package opentelekomcloud
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/huaweicloud/golangsdk/openstack/networking/v1/subnets"
 
@@ -43,7 +42,6 @@ func dataSourceVpcSubnetIdsV1Read(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	refinedSubnets, err := subnets.List(subnetClient, listOpts)
-	log.Printf("[DEBUG] Value of refinedSubnets: %#v", refinedSubnets)
 	if err != nil {
 		return fmt.Errorf("Unable to retrieve subnets: %s", err)
 	}
@@ -57,7 +55,6 @@ func dataSourceVpcSubnetIdsV1Read(d *schema.ResourceData, meta interface{}) erro
 	for _, subnet := range refinedSubnets {
 		Subnets = append(Subnets, subnet.ID)
 	}
-	log.Printf("[DEBUG] Value of subnets: %#v", Subnets)
 
 	d.SetId(d.Get("vpc_id").(string))
 	d.Set("ids", Subnets)

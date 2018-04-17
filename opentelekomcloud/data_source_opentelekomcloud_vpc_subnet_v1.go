@@ -88,7 +88,6 @@ func dataSourceVpcSubnetV1Read(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	refinedSubnets, err := subnets.List(subnetClient, listOpts)
-	log.Printf("[DEBUG] Value of allSubnets: %#v", refinedSubnets)
 	if err != nil {
 		return fmt.Errorf("Unable to retrieve subnets: %s", err)
 	}
@@ -104,7 +103,7 @@ func dataSourceVpcSubnetV1Read(d *schema.ResourceData, meta interface{}) error {
 
 	Subnets := refinedSubnets[0]
 
-	log.Printf("[DEBUG] Retrieved Subnets using given filter %s: %+v", Subnets.ID, Subnets)
+	log.Printf("[INFO] Retrieved Subnet using given filter %s: %+v", Subnets.ID, Subnets)
 	d.SetId(Subnets.ID)
 
 	d.Set("name", Subnets.Name)

@@ -62,7 +62,6 @@ func dataSourceVpcPeeringConnectionV2Read(d *schema.ResourceData, meta interface
 	}
 
 	refinedPeering, err := peerings.List(peeringClient, listOpts)
-	log.Printf("[DEBUG] Value of allPeeringConnections: %#v", refinedPeering)
 	if err != nil {
 		return fmt.Errorf("Unable to retrieve vpc peering connections: %s", err)
 	}
@@ -79,7 +78,7 @@ func dataSourceVpcPeeringConnectionV2Read(d *schema.ResourceData, meta interface
 
 	Peering := refinedPeering[0]
 
-	log.Printf("[DEBUG] Retrieved Vpc peering Connections using given filter %s: %+v", Peering.ID, Peering)
+	log.Printf("[INFO] Retrieved Vpc peering Connections using given filter %s: %+v", Peering.ID, Peering)
 	d.SetId(Peering.ID)
 
 	d.Set("id", Peering.ID)

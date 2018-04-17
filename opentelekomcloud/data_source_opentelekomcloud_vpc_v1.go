@@ -72,7 +72,6 @@ func dataSourceVirtualPrivateCloudV1Read(d *schema.ResourceData, meta interface{
 	}
 
 	refinedVpcs, err := vpcs.List(vpcClient, listOpts)
-	log.Printf("[DEBUG] Value of allVpcs: %#v", refinedVpcs)
 	if err != nil {
 		return fmt.Errorf("Unable to retrieve vpcs: %s", err)
 	}
@@ -98,7 +97,7 @@ func dataSourceVirtualPrivateCloudV1Read(d *schema.ResourceData, meta interface{
 		s = append(s, mapping)
 	}
 
-	log.Printf("[DEBUG] Retrieved Vpcs using given filter %s: %+v", Vpc.ID, Vpc)
+	log.Printf("[INFO] Retrieved Vpc using given filter %s: %+v", Vpc.ID, Vpc)
 	d.SetId(Vpc.ID)
 
 	d.Set("name", Vpc.Name)

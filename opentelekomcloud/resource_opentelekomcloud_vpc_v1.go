@@ -13,7 +13,7 @@ import (
 
 func resourceVirtualPrivateCloudV1() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceVirtualPrivateCloudV1Create, //providers.go
+		Create: resourceVirtualPrivateCloudV1Create,
 		Read:   resourceVirtualPrivateCloudV1Read,
 		Update: resourceVirtualPrivateCloudV1Update,
 		Delete: resourceVirtualPrivateCloudV1Delete,
@@ -63,8 +63,6 @@ func resourceVirtualPrivateCloudV1Create(d *schema.ResourceData, meta interface{
 	config := meta.(*Config)
 	vpcClient, err := config.networkingV1Client(GetRegion(d, config))
 
-	log.Printf("[DEBUG] Value of vpcClient: %#v", vpcClient)
-
 	if err != nil {
 		return fmt.Errorf("Error creating OpenTelekomCloud vpc client: %s", err)
 	}
@@ -74,7 +72,6 @@ func resourceVirtualPrivateCloudV1Create(d *schema.ResourceData, meta interface{
 		CIDR: d.Get("cidr").(string),
 	}
 
-	log.Printf("[DEBUG] Create Options: %#v", createOpts)
 	n, err := vpcs.Create(vpcClient, createOpts).Extract()
 
 	if err != nil {
@@ -83,8 +80,6 @@ func resourceVirtualPrivateCloudV1Create(d *schema.ResourceData, meta interface{
 	d.SetId(n.ID)
 
 	log.Printf("[INFO] Vpc ID: %s", n.ID)
-
-	log.Printf("[DEBUG] Waiting for OpenTelekomCloud Vpc (%s) to become available", n.ID)
 
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{"CREATING"},
@@ -119,8 +114,6 @@ func resourceVirtualPrivateCloudV1Read(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("Error retrieving OpenTelekomCloud Vpc: %s", err)
 	}
 
-	log.Printf("[DEBUG] Retrieved Vpc %s: %+v", d.Id(), n)
-
 	d.Set("id", n.ID)
 	d.Set("name", n.Name)
 	d.Set("cidr", n.CIDR)
@@ -150,10 +143,7 @@ func resourceVirtualPrivateCloudV1Update(d *schema.ResourceData, meta interface{
 		updateOpts.CIDR = d.Get("cidr").(string)
 	}
 
-	log.Printf("[DEBUG] Updating Vpc %s with options: %+v", d.Id(), updateOpts)
-
 	if update {
-		log.Printf("[DEBUG] Updating Vpc %s with options: %#v", d.Id(), updateOpts)
 		_, err = vpcs.Update(vpcClient, d.Id(), updateOpts).Extract()
 		if err != nil {
 			return fmt.Errorf("Error updating OpenTelekomCloud Vpc: %s", err)
@@ -163,7 +153,6 @@ func resourceVirtualPrivateCloudV1Update(d *schema.ResourceData, meta interface{
 }
 
 func resourceVirtualPrivateCloudV1Delete(d *schema.ResourceData, meta interface{}) error {
-	log.Printf("[DEBUG] Destroy vpc: %s", d.Id())
 
 	config := meta.(*Config)
 	vpcClient, err := config.networkingV1Client(GetRegion(d, config))
@@ -196,7 +185,6 @@ func waitForVpcActive(vpcClient *golangsdk.ServiceClient, vpcId string) resource
 			return nil, "", err
 		}
 
-		log.Printf("[DEBUG] OpenTelekomCloud VPC Client: %+v", n)
 		if n.Status == "DOWN" || n.Status == "OK" {
 			return n, "ACTIVE", nil
 		}
@@ -207,24 +195,21 @@ func waitForVpcActive(vpcClient *golangsdk.ServiceClient, vpcId string) resource
 
 func waitForVpcDelete(vpcClient *golangsdk.ServiceClient, vpcId string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		log.Printf("[DEBUG] Attempting to delete OpenTelekomCloud vpc %s.\n", vpcId)
 
 		r, err := vpcs.Get(vpcClient, vpcId).Extract()
-		log.Printf("[DEBUG] Value after extract: %#v", r)
 		if err != nil {
 			if _, ok := err.(golangsdk.ErrDefault404); ok {
-				log.Printf("[DEBUG] Successfully deleted OpenTelekomCloud vpc %s", vpcId)
+				log.Printf("[INFO] Successfully deleted OpenTelekomCloud vpc %s", vpcId)
 				return r, "DELETED", nil
 			}
 			return r, "ACTIVE", err
 		}
 
 		err = vpcs.Delete(vpcClient, vpcId).ExtractErr()
-		log.Printf("[DEBUG] Value if error: %#v", err)
 
 		if err != nil {
 			if _, ok := err.(golangsdk.ErrDefault404); ok {
-				log.Printf("[DEBUG] Successfully deleted OpenTelekomCloud vpc %s", vpcId)
+				log.Printf("[INFO] Successfully deleted OpenTelekomCloud vpc %s", vpcId)
 				return r, "DELETED", nil
 			}
 			if errCode, ok := err.(golangsdk.ErrUnexpectedResponseCode); ok {
@@ -235,7 +220,6 @@ func waitForVpcDelete(vpcClient *golangsdk.ServiceClient, vpcId string) resource
 			return r, "ACTIVE", err
 		}
 
-		log.Printf("[DEBUG] OpenTelekomCloud vpc %s still active.\n", vpcId)
 		return r, "ACTIVE", nil
 	}
 }

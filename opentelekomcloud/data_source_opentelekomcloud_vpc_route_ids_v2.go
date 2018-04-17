@@ -1,8 +1,6 @@
 package opentelekomcloud
 
 import (
-	"log"
-
 	"github.com/huaweicloud/golangsdk/openstack/networking/v2/routes"
 
 	"fmt"
@@ -45,7 +43,6 @@ func dataSourceVpcRouteIdsV2Read(d *schema.ResourceData, meta interface{}) error
 	pages, err := routes.List(vpcRouteClient, listOpts).AllPages()
 	refinedRoutes, err := routes.ExtractRoutes(pages)
 
-	log.Printf("[DEBUG] Value of allRoutes: %#v", refinedRoutes)
 	if err != nil {
 		return fmt.Errorf("Unable to retrieve vpc Routes: %s", err)
 	}
@@ -60,7 +57,6 @@ func dataSourceVpcRouteIdsV2Read(d *schema.ResourceData, meta interface{}) error
 		listRoutes = append(listRoutes, route.RouteID)
 
 	}
-	log.Printf("[DEBUG] listRoutes %s", listRoutes)
 
 	d.SetId(d.Get("vpc_id").(string))
 	d.Set("ids", listRoutes)

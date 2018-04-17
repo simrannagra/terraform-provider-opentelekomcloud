@@ -13,7 +13,7 @@ import (
 
 func resourceVpcPeeringConnectionAccepterV2() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceVPCPeeringAccepterV2Create, //providers.go
+		Create: resourceVPCPeeringAccepterV2Create,
 		Read:   resourceVpcPeeringAccepterRead,
 		Update: resourceVPCPeeringAccepterUpdate,
 		Delete: resourceVPCPeeringAccepterDelete,
@@ -71,9 +71,6 @@ func resourceVpcPeeringConnectionAccepterV2() *schema.Resource {
 func resourceVPCPeeringAccepterV2Create(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*Config)
 	peeringClient, err := config.networkingHwV2Client(GetRegion(d, config))
-	log.Printf("[DEBUG] Output of peeringClient: %v", peeringClient)
-	log.Printf("[DEBUG] Output of d: %v", d)
-	log.Printf("[DEBUG] Output of meta: %v", meta)
 
 	if err != nil {
 		return fmt.Errorf("Error creating OpenTelekomCloud Peering client: %s", err)
@@ -82,7 +79,6 @@ func resourceVPCPeeringAccepterV2Create(d *schema.ResourceData, meta interface{}
 	id := d.Get("vpc_peering_connection_id").(string)
 
 	n, err := peerings.Get(peeringClient, id).Extract()
-	log.Printf("[DEBUG] Output of n: %s", n)
 	if err != nil {
 		return fmt.Errorf("Error retrieving OpenTelekomCloud Vpc Peering Connection: %s", err)
 	}
@@ -96,9 +92,8 @@ func resourceVPCPeeringAccepterV2Create(d *schema.ResourceData, meta interface{}
 	if _, ok := d.GetOk("accept"); ok {
 
 		expectedStatus = "ACTIVE"
-		result, err := peerings.Accept(peeringClient, id).ExtractResult()
+		_, err := peerings.Accept(peeringClient, id).ExtractResult()
 
-		log.Printf("[DEBUG] Output of Accept: %s", result)
 		if err != nil {
 			return errwrap.Wrapf("Unable to accept VPC Peering Connection: {{err}}", err)
 		}
@@ -106,16 +101,12 @@ func resourceVPCPeeringAccepterV2Create(d *schema.ResourceData, meta interface{}
 	} else {
 		expectedStatus = "REJECTED"
 
-		result, err := peerings.Reject(peeringClient, id).ExtractResult()
-
-		log.Printf("[DEBUG] Output Of reject: %s", result)
+		_, err := peerings.Reject(peeringClient, id).ExtractResult()
 
 		if err != nil {
 			return errwrap.Wrapf("Unable to reject VPC Peering Connection: {{err}}", err)
 		}
 	}
-
-	log.Printf("[DEBUG] Waiting for OpenTelekomCloud Vpc Peering Connection(%s) to become %s", n.ID, expectedStatus)
 
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{"PENDING"},
@@ -128,7 +119,7 @@ func resourceVPCPeeringAccepterV2Create(d *schema.ResourceData, meta interface{}
 
 	_, err = stateConf.WaitForState()
 	d.SetId(n.ID)
-	log.Printf("[DEBUG] VPC Peering Connection status: %s", expectedStatus)
+	log.Printf("[INFO] VPC Peering Connection status: %s", expectedStatus)
 
 	return resourceVpcPeeringAccepterRead(d, meta)
 
@@ -150,8 +141,6 @@ func resourceVpcPeeringAccepterRead(d *schema.ResourceData, meta interface{}) er
 
 		return fmt.Errorf("Error retrieving OpenTelekomCloud Vpc Peering Connection: %s", err)
 	}
-
-	log.Printf("[DEBUG] Retrieved Vpc Peering Connection %s: %+v", d.Id(), n)
 
 	d.Set("id", n.ID)
 	d.Set("name", n.Name)
@@ -185,7 +174,6 @@ func waitForVpcPeeringConnStatus(peeringClient *golangsdk.ServiceClient, peering
 			return nil, "", err
 		}
 
-		log.Printf("[DEBUG] OpenTelekomCloud Peering Client: %+v", n)
 		if n.Status == expectedStatus {
 			return n, expectedStatus, nil
 		}

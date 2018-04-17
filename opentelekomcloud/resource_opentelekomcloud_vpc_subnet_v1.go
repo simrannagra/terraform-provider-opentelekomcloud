@@ -22,7 +22,7 @@ func resourceSubnetDNSListV1(d *schema.ResourceData) []string {
 
 func resourceVpcSubnetV1() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceVpcSubnetV1Create, //providers.go
+		Create: resourceVpcSubnetV1Create,
 		Read:   resourceVpcSubnetV1Read,
 		Update: resourceVpcSubnetV1Update,
 		Delete: resourceVpcSubnetV1Delete,
@@ -107,8 +107,6 @@ func resourceVpcSubnetV1Create(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*Config)
 	subnetClient, err := config.networkingV1Client(GetRegion(d, config))
 
-	log.Printf("[DEBUG] Value of networking Client: %#v", subnetClient)
-
 	if err != nil {
 		return fmt.Errorf("Error creating OpenTelekomCloud networking client: %s", err)
 	}
@@ -125,15 +123,11 @@ func resourceVpcSubnetV1Create(d *schema.ResourceData, meta interface{}) error {
 		DnsList:          resourceSubnetDNSListV1(d),
 	}
 
-	log.Printf("[DEBUG] Create Options: %#v", createOpts)
 	n, err := subnets.Create(subnetClient, createOpts).Extract()
-	log.Printf("[DEBUG] Create Subnet: %#v", n)
 	if err != nil {
 		return fmt.Errorf("Error creating OpenTelekomCloud VPC subnet: %s", err)
 	}
 	log.Printf("[INFO] Vpc Subnet ID: %s", n.ID)
-
-	log.Printf("[DEBUG] Waiting for OpenTelekomCloud Vpc Subnet(%s) to become available", n.ID)
 
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{"CREATING"},
@@ -167,8 +161,6 @@ func resourceVpcSubnetV1Read(d *schema.ResourceData, meta interface{}) error {
 
 		return fmt.Errorf("Error retrieving OpenTelekomCloud Subnets: %s", err)
 	}
-
-	log.Printf("[DEBUG] Retrieved subnet %s: %+v", d.Id(), n)
 
 	d.Set("name", n.Name)
 	d.Set("cidr", n.CIDR)
@@ -224,10 +216,7 @@ func resourceVpcSubnetV1Update(d *schema.ResourceData, meta interface{}) error {
 
 	vpc_id := d.Get("vpc_id").(string)
 
-	log.Printf("[DEBUG] Subnet_id %+v", d.Id())
-
 	if update {
-		log.Printf("[DEBUG] Updating subnet %s with options: %#v", d.Id(), updateOpts)
 		_, err = subnets.Update(subnetClient, vpc_id, d.Id(), updateOpts).Extract()
 		if err != nil {
 			return fmt.Errorf("Error updating OpenTelekomCloud VPC Subnet: %s", err)
@@ -237,7 +226,6 @@ func resourceVpcSubnetV1Update(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceVpcSubnetV1Delete(d *schema.ResourceData, meta interface{}) error {
-	log.Printf("[DEBUG] Destroy subnet: %s", d.Id())
 
 	config := meta.(*Config)
 	subnetClient, err := config.networkingV1Client(GetRegion(d, config))
@@ -271,7 +259,6 @@ func waitForVpcSubnetActive(subnetClient *golangsdk.ServiceClient, vpcId string)
 			return nil, "", err
 		}
 
-		log.Printf("[DEBUG] OpenTelekomCloud Subnet Client: %+v", n)
 		if n.Status == "DOWN" || n.Status == "ACTIVE" || n.Status == "ERROR" {
 			return n, "ACTIVE", nil
 		}
@@ -286,23 +273,21 @@ func waitForVpcSubnetActive(subnetClient *golangsdk.ServiceClient, vpcId string)
 
 func waitForVpcSubnetDelete(subnetClient *golangsdk.ServiceClient, vpcId string, subnetId string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		log.Printf("[DEBUG] Attempting to delete OpenTelekomCloud subnet %s.\n", subnetId)
 
 		r, err := subnets.Get(subnetClient, subnetId).Extract()
-		log.Printf("[DEBUG] Value after extract: %#v", r)
+
 		if err != nil {
 			if _, ok := err.(golangsdk.ErrDefault404); ok {
-				log.Printf("[DEBUG] Successfully deleted OpenTelekomCloud subnet %s", subnetId)
+				log.Printf("[INFO] Successfully deleted OpenTelekomCloud subnet %s", subnetId)
 				return r, "DELETED", nil
 			}
 			return r, "ACTIVE", err
 		}
 		err = subnets.Delete(subnetClient, vpcId, subnetId).ExtractErr()
-		log.Printf("[DEBUG] Value if error: %#v", err)
 
 		if err != nil {
 			if _, ok := err.(golangsdk.ErrDefault404); ok {
-				log.Printf("[DEBUG] Successfully deleted OpenTelekomCloud subnet %s", subnetId)
+				log.Printf("[INFO] Successfully deleted OpenTelekomCloud subnet %s", subnetId)
 				return r, "DELETED", nil
 			}
 			if errCode, ok := err.(golangsdk.ErrUnexpectedResponseCode); ok {
@@ -313,7 +298,6 @@ func waitForVpcSubnetDelete(subnetClient *golangsdk.ServiceClient, vpcId string,
 			return r, "ACTIVE", err
 		}
 
-		log.Printf("[DEBUG] OpenTelekomCloud subnet %s still active.\n", subnetId)
 		return r, "ACTIVE", nil
 	}
 }

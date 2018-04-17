@@ -13,7 +13,7 @@ import (
 
 func resourceVPCRouteV2() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceVpcRouteV2Create, //providers.go
+		Create: resourceVpcRouteV2Create,
 		Read:   resourceVpcRouteV2Read,
 		Delete: resourceVpcRouteV2Delete,
 		Importer: &schema.ResourceImporter{
@@ -67,8 +67,6 @@ func resourceVpcRouteV2Create(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*Config)
 	vpcRouteClient, err := config.networkingHwV2Client(GetRegion(d, config))
 
-	log.Printf("[DEBUG] Value of vpcRouteClient: %v", vpcRouteClient)
-
 	if err != nil {
 		return fmt.Errorf("Error creating OpenTelekomCloud vpc route client: %s", err)
 	}
@@ -81,7 +79,6 @@ func resourceVpcRouteV2Create(d *schema.ResourceData, meta interface{}) error {
 		VPC_ID:      d.Get("vpc_id").(string),
 	}
 
-	log.Printf("[DEBUG] Create Options: %#v", createOpts)
 	n, err := routes.Create(vpcRouteClient, createOpts).Extract()
 
 	if err != nil {
@@ -114,8 +111,6 @@ func resourceVpcRouteV2Read(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Error retrieving OpenTelekomCloud Vpc route: %s", err)
 	}
 
-	log.Printf("[DEBUG] Retrieved Vpc Route %s: %+v", d.Id(), n)
-
 	d.Set("type", n.Type)
 	d.Set("nexthop", n.NextHop)
 	d.Set("destination", n.Destination)
@@ -128,7 +123,6 @@ func resourceVpcRouteV2Read(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceVpcRouteV2Delete(d *schema.ResourceData, meta interface{}) error {
-	log.Printf("[DEBUG] Destroy vpc route: %s", d.Id())
 
 	config := meta.(*Config)
 	vpcRouteClient, err := config.networkingHwV2Client(GetRegion(d, config))
@@ -156,13 +150,12 @@ func resourceVpcRouteV2Delete(d *schema.ResourceData, meta interface{}) error {
 
 func waitForVpcRouteDelete(vpcRouteClient *golangsdk.ServiceClient, routeId string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		log.Printf("[DEBUG] Attempting to delete OpenTelekomCloud vpc route %s.\n", routeId)
 
 		r, err := routes.Get(vpcRouteClient, routeId).Extract()
-		log.Printf("[DEBUG] Value after extract: %#v", r)
+
 		if err != nil {
 			if _, ok := err.(golangsdk.ErrDefault404); ok {
-				log.Printf("[DEBUG] Successfully deleted OpenTelekomCloud vpc route %s", routeId)
+				log.Printf("[INFO] Successfully deleted OpenTelekomCloud vpc route %s", routeId)
 				return r, "DELETED", nil
 			}
 			return r, "ACTIVE", err
@@ -173,7 +166,7 @@ func waitForVpcRouteDelete(vpcRouteClient *golangsdk.ServiceClient, routeId stri
 
 		if err != nil {
 			if _, ok := err.(golangsdk.ErrDefault404); ok {
-				log.Printf("[DEBUG] Successfully deleted OpenTelekomCloud vpc route %s", routeId)
+				log.Printf("[INFO] Successfully deleted OpenTelekomCloud vpc route %s", routeId)
 				return r, "DELETED", nil
 			}
 			if errCode, ok := err.(golangsdk.ErrUnexpectedResponseCode); ok {
@@ -184,7 +177,6 @@ func waitForVpcRouteDelete(vpcRouteClient *golangsdk.ServiceClient, routeId stri
 			return r, "ACTIVE", err
 		}
 
-		log.Printf("[DEBUG] OpenTelekomCloud vpc route %s still active.\n", routeId)
 		return r, "ACTIVE", nil
 	}
 }

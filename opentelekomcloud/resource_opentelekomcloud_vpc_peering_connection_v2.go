@@ -12,7 +12,7 @@ import (
 
 func resourceVpcPeeringConnectionV2() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceVPCPeeringV2Create, //providers.go
+		Create: resourceVPCPeeringV2Create,
 		Read:   resourceVPCPeeringV2Read,
 		Update: resourceVPCPeeringV2Update,
 		Delete: resourceVPCPeeringV2Delete,
@@ -69,8 +69,6 @@ func resourceVPCPeeringV2Create(d *schema.ResourceData, meta interface{}) error 
 	config := meta.(*Config)
 	peeringClient, err := config.networkingHwV2Client(GetRegion(d, config))
 
-	log.Printf("[DEBUG] Value of peeringClient: %#v", peeringClient)
-
 	if err != nil {
 		return fmt.Errorf("Error creating OpenTelekomCloud Vpc Peering Connection Client: %s", err)
 	}
@@ -90,7 +88,6 @@ func resourceVPCPeeringV2Create(d *schema.ResourceData, meta interface{}) error 
 		AcceptVpcInfo:  acceptvpcinfo,
 	}
 
-	log.Printf("[DEBUG] Create Options: %#v", createOpts)
 	n, err := peerings.Create(peeringClient, createOpts).Extract()
 
 	if err != nil {
@@ -100,7 +97,7 @@ func resourceVPCPeeringV2Create(d *schema.ResourceData, meta interface{}) error 
 
 	log.Printf("[INFO] Vpc Peering Connection ID: %s", n.ID)
 
-	log.Printf("[DEBUG] Waiting for OpenTelekomCloud Vpc Peering Connection(%s) to become available", n.ID)
+	log.Printf("[INFO] Waiting for OpenTelekomCloud Vpc Peering Connection(%s) to become available", n.ID)
 
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{"CREATING"},
@@ -135,8 +132,6 @@ func resourceVPCPeeringV2Read(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Error retrieving OpenTelekomCloud Vpc Peering Connection: %s", err)
 	}
 
-	log.Printf("[DEBUG] Retrieved Vpc Peering Connection %s: %+v", d.Id(), n)
-
 	d.Set("id", n.ID)
 	d.Set("name", n.Name)
 	d.Set("status", n.Status)
@@ -163,10 +158,8 @@ func resourceVPCPeeringV2Update(d *schema.ResourceData, meta interface{}) error 
 		updateOpts.Name = d.Get("name").(string)
 	}
 
-	log.Printf("[DEBUG] Updating Vpc Peering Connection %s with options: %+v", d.Id(), updateOpts)
-
 	if update {
-		log.Printf("[DEBUG] Updating Vpc Peering Connection %s with options: %#v", d.Id(), updateOpts)
+
 		_, err = peerings.Update(peeringClient, d.Id(), updateOpts).Extract()
 		if err != nil {
 			return fmt.Errorf("Error updating OpenTelekomCloud Vpc Peering Connection: %s", err)
@@ -177,7 +170,6 @@ func resourceVPCPeeringV2Update(d *schema.ResourceData, meta interface{}) error 
 }
 
 func resourceVPCPeeringV2Delete(d *schema.ResourceData, meta interface{}) error {
-	log.Printf("[DEBUG] Destroy vpc peering connection: %s", d.Id())
 
 	config := meta.(*Config)
 	peeringClient, err := config.networkingHwV2Client(GetRegion(d, config))
@@ -210,7 +202,6 @@ func waitForVpcPeeringActive(peeringClient *golangsdk.ServiceClient, peeringId s
 			return nil, "", err
 		}
 
-		log.Printf("[DEBUG] OpenTelekomCloud Peering Client: %+v", n)
 		if n.Status == "PENDING_ACCEPTANCE" || n.Status == "ACTIVE" {
 			return n, n.Status, nil
 		}
@@ -221,24 +212,22 @@ func waitForVpcPeeringActive(peeringClient *golangsdk.ServiceClient, peeringId s
 
 func waitForVpcPeeringDelete(peeringClient *golangsdk.ServiceClient, peeringId string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		log.Printf("[DEBUG] Attempting to delete OpenTelekomCloud vpc peering connection %s.\n", peeringId)
 
 		r, err := peerings.Get(peeringClient, peeringId).Extract()
-		log.Printf("[DEBUG] Value after extract: %#v", r)
+
 		if err != nil {
 			if _, ok := err.(golangsdk.ErrDefault404); ok {
-				log.Printf("[DEBUG] Successfully deleted OpenTelekomCloud vpc peering connection %s", peeringId)
+				log.Printf("[INFO] Successfully deleted OpenTelekomCloud vpc peering connection %s", peeringId)
 				return r, "DELETED", nil
 			}
 			return r, "ACTIVE", err
 		}
 
 		err = peerings.Delete(peeringClient, peeringId).ExtractErr()
-		log.Printf("[DEBUG] Value if error: %#v", err)
 
 		if err != nil {
 			if _, ok := err.(golangsdk.ErrDefault404); ok {
-				log.Printf("[DEBUG] Successfully deleted OpenTelekomCloud vpc peering connection %s", peeringId)
+				log.Printf("[INFO] Successfully deleted OpenTelekomCloud vpc peering connection %s", peeringId)
 				return r, "DELETED", nil
 			}
 			if errCode, ok := err.(golangsdk.ErrUnexpectedResponseCode); ok {
@@ -249,7 +238,6 @@ func waitForVpcPeeringDelete(peeringClient *golangsdk.ServiceClient, peeringId s
 			return r, "ACTIVE", err
 		}
 
-		log.Printf("[DEBUG] OpenTelekomCloud vpc peering connection %s still active.\n", peeringId)
 		return r, "ACTIVE", nil
 	}
 }
