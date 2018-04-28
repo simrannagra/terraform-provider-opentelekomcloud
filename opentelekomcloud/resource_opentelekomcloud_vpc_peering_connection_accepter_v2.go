@@ -25,7 +25,7 @@ func resourceVpcPeeringConnectionAccepterV2() *schema.Resource {
 			Delete: schema.DefaultTimeout(10 * time.Minute),
 		},
 
-		Schema: map[string]*schema.Schema{ //request and response parameters
+		Schema: map[string]*schema.Schema{
 			"region": &schema.Schema{
 				Type:     schema.TypeString,
 				Optional: true,
@@ -51,17 +51,14 @@ func resourceVpcPeeringConnectionAccepterV2() *schema.Resource {
 			},
 			"vpc_id": &schema.Schema{
 				Type:     schema.TypeString,
-				Optional: true,
 				Computed: true,
 			},
 			"peer_vpc_id": &schema.Schema{
 				Type:     schema.TypeString,
-				Optional: true,
 				Computed: true,
 			},
 			"peer_tenant_id": &schema.Schema{
 				Type:     schema.TypeString,
-				Optional: true,
 				Computed: true,
 			},
 		},
@@ -145,6 +142,7 @@ func resourceVpcPeeringAccepterRead(d *schema.ResourceData, meta interface{}) er
 	d.Set("id", n.ID)
 	d.Set("name", n.Name)
 	d.Set("status", n.Status)
+	d.Set("vpc_id", n.RequestVpcInfo.VpcId)
 	d.Set("peer_vpc_id", n.AcceptVpcInfo.VpcId)
 	d.Set("peer_tenant_id", n.AcceptVpcInfo.TenantId)
 	d.Set("region", GetRegion(d, config))

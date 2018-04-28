@@ -47,12 +47,10 @@ func resourceVirtualPrivateCloudV1() *schema.Resource {
 			},
 			"status": &schema.Schema{
 				Type:     schema.TypeString,
-				ForceNew: false,
 				Computed: true,
 			},
 			"shared": &schema.Schema{
 				Type:     schema.TypeBool,
-				ForceNew: false,
 				Computed: true,
 			},
 		},
@@ -131,24 +129,20 @@ func resourceVirtualPrivateCloudV1Update(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("Error creating OpenTelekomCloud Vpc: %s", err)
 	}
 
-	var update bool
 	var updateOpts vpcs.UpdateOpts
 
 	if d.HasChange("name") {
-		update = true
 		updateOpts.Name = d.Get("name").(string)
 	}
 	if d.HasChange("cidr") {
-		update = true
 		updateOpts.CIDR = d.Get("cidr").(string)
 	}
 
-	if update {
-		_, err = vpcs.Update(vpcClient, d.Id(), updateOpts).Extract()
-		if err != nil {
-			return fmt.Errorf("Error updating OpenTelekomCloud Vpc: %s", err)
-		}
+	_, err = vpcs.Update(vpcClient, d.Id(), updateOpts).Extract()
+	if err != nil {
+		return fmt.Errorf("Error updating OpenTelekomCloud Vpc: %s", err)
 	}
+
 	return resourceVirtualPrivateCloudV1Read(d, meta)
 }
 

@@ -57,7 +57,6 @@ func resourceVpcSubnetV1() *schema.Resource {
 			"dns_list": &schema.Schema{
 				Type:     schema.TypeSet,
 				Optional: true,
-				Required: false,
 				Elem:     &schema.Schema{Type: schema.TypeString, ValidateFunc: validateIP},
 				Set:      schema.HashString,
 				Computed: true,
@@ -183,45 +182,34 @@ func resourceVpcSubnetV1Update(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Error creating OpenTelekomCloud networking client: %s", err)
 	}
 
-	var update bool
 	var updateOpts subnets.UpdateOpts
 
 	//as name is mandatory while updating subnet
 	updateOpts.Name = d.Get("name").(string)
 
-	if d.HasChange("name") {
-		update = true
-	}
 	if d.HasChange("primary_dns") {
-		update = true
 		updateOpts.PRIMARY_DNS = d.Get("primary_dns").(string)
 	}
 	if d.HasChange("secondary_dns") {
-		update = true
 		updateOpts.SECONDARY_DNS = d.Get("secondary_dns").(string)
 	}
 	if d.HasChange("dns_list") {
-		update = true
 		updateOpts.DnsList = resourceSubnetDNSListV1(d)
 	}
 	if d.HasChange("dhcp_enable") {
-		update = true
 		updateOpts.EnableDHCP = d.Get("dhcp_enable").(bool)
 
-	} else if update { //maintaining dhcp to be true if it was true earlier as default update option for dhcp bool is always going to be false in golangsdk
-		if d.Get("dhcp_enable").(bool) {
-			updateOpts.EnableDHCP = true
-		}
+	} else if d.Get("dhcp_enable").(bool) { //maintaining dhcp to be true if it was true earlier as default update option for dhcp bool is always going to be false in golangsdk
+		updateOpts.EnableDHCP = true
 	}
 
 	vpc_id := d.Get("vpc_id").(string)
 
-	if update {
-		_, err = subnets.Update(subnetClient, vpc_id, d.Id(), updateOpts).Extract()
-		if err != nil {
-			return fmt.Errorf("Error updating OpenTelekomCloud VPC Subnet: %s", err)
-		}
+	_, err = subnets.Update(subnetClient, vpc_id, d.Id(), updateOpts).Extract()
+	if err != nil {
+		return fmt.Errorf("Error updating OpenTelekomCloud VPC Subnet: %s", err)
 	}
+
 	return resourceVpcSubnetV1Read(d, meta)
 }
 

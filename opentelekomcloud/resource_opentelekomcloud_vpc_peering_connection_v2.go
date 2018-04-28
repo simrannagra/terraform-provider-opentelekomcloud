@@ -93,7 +93,6 @@ func resourceVPCPeeringV2Create(d *schema.ResourceData, meta interface{}) error 
 	if err != nil {
 		return fmt.Errorf("Error creating OpenTelekomCloud Vpc Peering Connection: %s", err)
 	}
-	d.SetId(n.ID)
 
 	log.Printf("[INFO] Vpc Peering Connection ID: %s", n.ID)
 
@@ -150,20 +149,13 @@ func resourceVPCPeeringV2Update(d *schema.ResourceData, meta interface{}) error 
 		return fmt.Errorf("Error creating OpenTelekomCloud  Vpc Peering Connection Client: %s", err)
 	}
 
-	var update bool
 	var updateOpts peerings.UpdateOpts
 
-	if d.HasChange("name") {
-		update = true
-		updateOpts.Name = d.Get("name").(string)
-	}
+	updateOpts.Name = d.Get("name").(string)
 
-	if update {
-
-		_, err = peerings.Update(peeringClient, d.Id(), updateOpts).Extract()
-		if err != nil {
-			return fmt.Errorf("Error updating OpenTelekomCloud Vpc Peering Connection: %s", err)
-		}
+	_, err = peerings.Update(peeringClient, d.Id(), updateOpts).Extract()
+	if err != nil {
+		return fmt.Errorf("Error updating OpenTelekomCloud Vpc Peering Connection: %s", err)
 	}
 
 	return resourceVPCPeeringV2Read(d, meta)
