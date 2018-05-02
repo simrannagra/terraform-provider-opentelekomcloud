@@ -153,3 +153,11 @@ func checkYamlString(yamlString interface{}) (string, error) {
 
 	return s, nil
 }
+
+func normalizeStackTemplate(templateString interface{}) (string, error) {
+	if looksLikeJsonString(templateString) {
+		return normalizeJsonString(templateString)
+	} else {
+		return checkYamlString(templateString)
+	}
+}
