@@ -322,25 +322,29 @@ func waitForStackDelete(orchestrationClient *golangsdk.ServiceClient, stackName 
 
 		r, err := stacks.Get(orchestrationClient , stackName , stackId).Extract()
 		log.Printf("[DEBUG] Value after extract: %#v", r)
-		if r.Status == "DELETE_COMPLETE" {
-			return r, "DELETE_COMPLETE", err
+		if err != nil {
+			if r.Status == "DELETE_COMPLETE" {
+				log.Printf("[INFO] Successfully deleted OpenTelekomCloud vpc %s", stackId)
+				return nil, "", err
+			}
+			return r, r.Status, err
 		}
 		err = stacks.Delete(orchestrationClient, stackName ,stackId).ExtractErr()
 		if err != nil {
 			if _, ok := err.(golangsdk.ErrDefault404); ok {
 				log.Printf("[DEBUG] Successfully deleted OpenTelekomCloud Stack %s", stackId)
-				return r, "DELETE_COMPLETE", nil
+				return r, r.Status, nil
 			}
 			if errCode, ok := err.(golangsdk.ErrUnexpectedResponseCode); ok {
 				if errCode.Actual == 409 {
-					return r, "CREATE_COMPLETE", nil
+					return r, r.Status, nil
 				}
 			}
-			return r, "CREATE_COMPLETE", err
+			return r, r.Status, err
 		}
 
 		log.Printf("[DEBUG] OpenTelekomCloud Stack %s still active.\n", stackId)
-		return r, "CREATE_COMPLETE", nil
+		return r, r.Status, nil
 	}
 }
 
