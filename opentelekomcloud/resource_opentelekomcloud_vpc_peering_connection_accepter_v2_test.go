@@ -16,7 +16,7 @@ func TestAccOTCVpcPeeringConnectionAccepterV2_basic(t *testing.T) {
 		CheckDestroy: testAccCheckOTCVpcPeeringConnectionAccepterDestroy,
 		Steps: []resource.TestStep{
 			resource.TestStep{
-				Config:      testAccOTCVpcPeeringConnectionAccepterV2_basic,
+				Config:      testAccOTCVpcPeeringConnectionAccepterV2_basic, //TODO: Research why normal scenario with peer tenant id is not working in acceptance tests
 				ExpectError: regexp.MustCompile(`VPC peering action not permitted: Can not accept/reject peering request not in PENDING_ACCEPTANCE state.`),
 			},
 		},

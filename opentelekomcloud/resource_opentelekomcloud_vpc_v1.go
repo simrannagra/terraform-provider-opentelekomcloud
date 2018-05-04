@@ -189,7 +189,7 @@ func waitForVpcActive(vpcClient *golangsdk.ServiceClient, vpcId string) resource
 
 		//If vpc status is other than Ok, send error
 		if n.Status == "DOWN" {
-			return nil, "", fmt.Errorf("Subnet status: '%s'", n.Status)
+			return nil, "", fmt.Errorf("Vpc status: '%s'", n.Status)
 		}
 
 		return n, n.Status, nil
