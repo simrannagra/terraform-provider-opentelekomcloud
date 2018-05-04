@@ -254,7 +254,6 @@ func resourceRtsStackV1Update(d *schema.ResourceData, meta interface{}) error {
 
 	log.Printf("[DEBUG] Updating Stack %s with options: %+v", d.Id(), updateOpts)
 
-	log.Printf("[DEBUG] Updating Stack %s with options: %#v", d.Id(), updateOpts)
 	err = stacks.Update(orchestrationClient, d.Get("name").(string), d.Id(), updateOpts).ExtractErr()
 	if err != nil {
 		return fmt.Errorf("Error updating OpenTelekomCloud Stack: %s", err)
