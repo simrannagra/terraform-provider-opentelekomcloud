@@ -1,23 +1,22 @@
 package opentelekomcloud
 
 import (
-
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/huaweicloud/golangsdk/openstack/rts/v1/stacks"
 	"time"
 
+	"fmt"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/huaweicloud/golangsdk"
 	"log"
-	"fmt"
 )
 
 func resourceRtsStackV1() *schema.Resource {
 	return &schema.Resource{
-		Create:resourceRtsStackV1Create,
-		Read:resourceRtsStackV1Read,
-		Update:resourceRtsStackV1Update,
-		Delete:resourceRtsStackV1Delete,
+		Create: resourceRtsStackV1Create,
+		Read:   resourceRtsStackV1Read,
+		Update: resourceRtsStackV1Update,
+		Delete: resourceRtsStackV1Delete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -45,9 +44,9 @@ func resourceRtsStackV1() *schema.Resource {
 				ValidateFunc: validateName,
 			},
 			"description": &schema.Schema{
-				Type:         schema.TypeString,
-				Optional:     true,
-				Computed: 	true,
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
 			},
 			"template": &schema.Schema{
 				Type:         schema.TypeString,
@@ -65,14 +64,13 @@ func resourceRtsStackV1() *schema.Resource {
 			},
 
 			"parameters": &schema.Schema{
-				Type:         schema.TypeMap,
-				Optional:     true,
-				Computed:		true,
+				Type:     schema.TypeMap,
+				Optional: true,
+				Computed: true,
 			},
 			"timeout_mins": &schema.Schema{
 				Type:     schema.TypeInt,
 				Optional: true,
-
 			},
 			"disable_rollback": &schema.Schema{
 				Type:     schema.TypeBool,
@@ -95,29 +93,26 @@ func resourceRtsStackV1() *schema.Resource {
 				Elem:     &schema.Schema{Type: schema.TypeString},
 				Set:      schema.HashString,
 			},
-			"capabilities":  &schema.Schema{
+			"capabilities": &schema.Schema{
 				Type:     schema.TypeSet,
 				Computed: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 				Set:      schema.HashString,
 			},
-			"notification_topics":  &schema.Schema{
+			"notification_topics": &schema.Schema{
 				Type:     schema.TypeSet,
 				Computed: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 				Set:      schema.HashString,
 			},
-
 		},
 	}
 }
 
-
-
 func resourcetemplateV1(d *schema.ResourceData) *stacks.Template {
 	rawTemplate := d.Get("template").(string)
 	template := new(stacks.Template)
-	template.Bin=[]byte(rawTemplate)
+	template.Bin = []byte(rawTemplate)
 	log.Printf("[DEBUG] template: %s", template)
 	return template
 }
@@ -125,7 +120,7 @@ func resourcetemplateV1(d *schema.ResourceData) *stacks.Template {
 func resourceenvironmentV1(d *schema.ResourceData) *stacks.Environment {
 	rawTemplate := d.Get("environment").(string)
 	environment := new(stacks.Environment)
-	environment.Bin=[]byte(rawTemplate)
+	environment.Bin = []byte(rawTemplate)
 	return environment
 }
 func resourceparameterV1(d *schema.ResourceData) map[string]string {
@@ -135,7 +130,6 @@ func resourceparameterV1(d *schema.ResourceData) map[string]string {
 	}
 	return m
 }
-
 
 func resourceRtsStackV1Create(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*Config)
@@ -147,14 +141,14 @@ func resourceRtsStackV1Create(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Error creating OpenTelekomCloud orchestration client: %s", err)
 	}
 
-	rollback:=d.Get("disable_rollback").(bool)
+	rollback := d.Get("disable_rollback").(bool)
 	createOpts := stacks.CreateOpts{
-		Name: 				d.Get("name").(string),
-		TemplateOpts:		resourcetemplateV1(d),
-		DisableRollback:	&rollback,
-		EnvironmentOpts:	resourceenvironmentV1(d),
-		Parameters:			resourceparameterV1(d),
-		Timeout:			d.Get("timeout_mins").(int),
+		Name:            d.Get("name").(string),
+		TemplateOpts:    resourcetemplateV1(d),
+		DisableRollback: &rollback,
+		EnvironmentOpts: resourceenvironmentV1(d),
+		Parameters:      resourceparameterV1(d),
+		Timeout:         d.Get("timeout_mins").(int),
 	}
 
 	log.Printf("[DEBUG] Create Options: %#v", createOpts)
@@ -168,36 +162,32 @@ func resourceRtsStackV1Create(d *schema.ResourceData, meta interface{}) error {
 
 	log.Printf("[DEBUG] Waiting for OpenTelekomCloud stack (%s) to become available", n.ID)
 
-
 	stateConf := &resource.StateChangeConf{
-		Pending:    []string{"CREATE_IN_PROGRESS",
-							 "DELETE_IN_PROGRESS",
-							 "ROLLBACK_IN_PROGRESS",},
-		Target:     []string{"CREATE_COMPLETE",
-							 "CREATE_FAILED",
-							 "DELETE_COMPLETE",
-							 "DELETE_FAILED",
-							 "ROLLBACK_COMPLETE",
-							 "ROLLBACK_FAILED",},
-		Refresh:    waitForStackActive(orchestrationClient,d.Get("name").(string), n.ID),
+		Pending: []string{"CREATE_IN_PROGRESS",
+			"DELETE_IN_PROGRESS",
+			"ROLLBACK_IN_PROGRESS"},
+		Target: []string{"CREATE_COMPLETE",
+			"CREATE_FAILED",
+			"DELETE_COMPLETE",
+			"DELETE_FAILED",
+			"ROLLBACK_COMPLETE",
+			"ROLLBACK_FAILED"},
+		Refresh:    waitForStackActive(orchestrationClient, d.Get("name").(string), n.ID),
 		Timeout:    d.Timeout(schema.TimeoutCreate),
 		Delay:      5 * time.Second,
 		MinTimeout: 3 * time.Second,
 	}
 
-	_, err = stateConf.WaitForState()
+	out, err := stateConf.WaitForState()
 	d.SetId(n.ID)
+	stack := out.(*stacks.RetrievedStack)
 
-	data, err1 := stacks.Get(orchestrationClient, d.Get("name").(string), n.ID).Extract()
-	if err1!=nil {
-
+	if stack.Status == "DELETE_COMPLETE" || stack.Status == "DELETE_FAILED" {
+		return fmt.Errorf("%s: %s", stack.Status, stack.StatusReason)
 	}
-	if data.Status == "DELETE_COMPLETE" || data.Status == "DELETE_FAILED" {
-		return fmt.Errorf("%s: %s", data.Status, data.StatusReason)
-	}
-	if data.Status == "CREATE_FAILED" || data.Status == "ROLLBACK_FAILED" {
+	if stack.Status == "CREATE_FAILED" || stack.Status == "ROLLBACK_FAILED" {
 
-		return fmt.Errorf("%s: %s", data.Status, data.StatusReason)
+		return fmt.Errorf("%s: %s", stack.Status, stack.StatusReason)
 	}
 
 	return resourceRtsStackV1Read(d, meta)
@@ -211,7 +201,7 @@ func resourceRtsStackV1Read(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Error creating OpenTelekomCloud orchestration Client: %s", err)
 	}
 
-	n, err := stacks.Get(orchestrationClient, d.Get("name").(string),d.Id()).Extract()
+	n, err := stacks.Get(orchestrationClient, d.Get("name").(string), d.Id()).Extract()
 	if err != nil {
 		d.SetId("")
 		return fmt.Errorf("Error retrieving OpenTelekomCloud Stacks: %s", err)
@@ -228,8 +218,8 @@ func resourceRtsStackV1Read(d *schema.ResourceData, meta interface{}) error {
 	d.Set("outputs", n.Outputs)
 	d.Set("capabilities", n.Capabilities)
 	d.Set("notification_topics", n.NotificationTopics)
-	d.Set("timeout_mins",n.Timeout)
-	d.Set("status",n.Status)
+	d.Set("timeout_mins", n.Timeout)
+	d.Set("status", n.Status)
 	d.Set("id", n.ID)
 
 	return nil
@@ -252,47 +242,43 @@ func resourceRtsStackV1Update(d *schema.ResourceData, meta interface{}) error {
 	}
 	if d.HasChange("parameters") {
 
-		updateOpts.Parameters =resourceparameterV1(d)
+		updateOpts.Parameters = resourceparameterV1(d)
 	}
 	if d.HasChange("timeout_mins") {
 		updateOpts.Timeout = d.Get("timeout_mins").(int)
 	}
 	if d.HasChange("disable_rollback") {
-		rollback:=d.Get("disable_rollback").(bool)
+		rollback := d.Get("disable_rollback").(bool)
 		updateOpts.DisableRollback = &rollback
 	}
 
-
 	log.Printf("[DEBUG] Updating Stack %s with options: %+v", d.Id(), updateOpts)
 
-		log.Printf("[DEBUG] Updating Stack %s with options: %#v", d.Id(), updateOpts)
-		err = stacks.Update(orchestrationClient,d.Get("name").(string), d.Id(), updateOpts).ExtractErr()
-		if err != nil {
-			return fmt.Errorf("Error updating OpenTelekomCloud Stack: %s", err)
-		}
+	log.Printf("[DEBUG] Updating Stack %s with options: %#v", d.Id(), updateOpts)
+	err = stacks.Update(orchestrationClient, d.Get("name").(string), d.Id(), updateOpts).ExtractErr()
+	if err != nil {
+		return fmt.Errorf("Error updating OpenTelekomCloud Stack: %s", err)
+	}
 	stateConf := &resource.StateChangeConf{
-		Pending:    []string{"UPDATE_IN_PROGRESS",
-							 "CREATE_COMPLETE",
-							 "ROLLBACK_IN_PROGRESS"},
-		Target:     []string{"UPDATE_COMPLETE",
-							 "UPDATE_FAILED",
-							 "ROLLBACK_COMPLETE",
-							 "ROLLBACK_FAILED"},
-		Refresh:    waitForStackUpdate(orchestrationClient,d.Get("name").(string), d.Id()),
+		Pending: []string{"UPDATE_IN_PROGRESS",
+			"CREATE_COMPLETE",
+			"ROLLBACK_IN_PROGRESS"},
+		Target: []string{"UPDATE_COMPLETE",
+			"UPDATE_FAILED",
+			"ROLLBACK_COMPLETE",
+			"ROLLBACK_FAILED"},
+		Refresh:    waitForStackUpdate(orchestrationClient, d.Get("name").(string), d.Id()),
 		Timeout:    d.Timeout(schema.TimeoutDelete),
 		Delay:      5 * time.Second,
 		MinTimeout: 3 * time.Second,
 	}
 
-	_, err = stateConf.WaitForState()
+	out, err := stateConf.WaitForState()
+	stack := out.(*stacks.RetrievedStack)
 
-	data, err1 := stacks.Get(orchestrationClient, d.Get("name").(string), d.Id()).Extract()
-	if err1!=nil {
+	if stack.Status == "ROLLBACK_COMPLETE" || stack.Status == "ROLLBACK_FAILED" || stack.Status == "UPDATE_FAILED" {
 
-	}
-	if data.Status == "ROLLBACK_COMPLETE" || data.Status == "ROLLBACK_FAILED"|| data.Status == "UPDATE_FAILED" {
-
-		return fmt.Errorf("%s: %s", data.Status, data.StatusReason)
+		return fmt.Errorf("%s: %s", stack.Status, stack.StatusReason)
 	}
 
 	return resourceRtsStackV1Read(d, meta)
@@ -307,19 +293,18 @@ func resourceRtsStackV1Delete(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Error creating OpenTelekomCloud orchestration Client: %s", err)
 	}
 
-
 	stateConf := &resource.StateChangeConf{
-		Pending:    []string{"DELETE_IN_PROGRESS",
-						     "CREATE_COMPLETE",
-						     "CREATE_FAILED",
-						     "UPDATE_COMPLETE",
-						     "UPDATE_FAILED",
-						     "CREATE_FAILED",
-						     "ROLLBACK_COMPLETE",
-						     "ROLLBACK_IN_PROGRESS"},
-		Target:     []string{"DELETE_COMPLETE",
-							 "DELETE_FAILED"},
-		Refresh:    waitForStackDelete(orchestrationClient,d.Get("name").(string), d.Id()),
+		Pending: []string{"DELETE_IN_PROGRESS",
+			"CREATE_COMPLETE",
+			"CREATE_FAILED",
+			"UPDATE_COMPLETE",
+			"UPDATE_FAILED",
+			"CREATE_FAILED",
+			"ROLLBACK_COMPLETE",
+			"ROLLBACK_IN_PROGRESS"},
+		Target: []string{"DELETE_COMPLETE",
+			"DELETE_FAILED"},
+		Refresh:    waitForStackDelete(orchestrationClient, d.Get("name").(string), d.Id()),
 		Timeout:    d.Timeout(schema.TimeoutDelete),
 		Delay:      5 * time.Second,
 		MinTimeout: 3 * time.Second,
@@ -335,41 +320,40 @@ func resourceRtsStackV1Delete(d *schema.ResourceData, meta interface{}) error {
 
 	if stack.Status == "DELETE_FAILED" {
 		return fmt.Errorf("%s: %q", stack.Status, stack.StatusReason)
-		d.SetId("")
+
 	}
-	log.Printf("[INFO] Successfully deleted OpenTelekomCloud vpc %s",)
 
 	d.SetId("")
 	return nil
 }
 
-func waitForStackActive(orchestrationClient *golangsdk.ServiceClient, stackName string,stackId string) resource.StateRefreshFunc {
+func waitForStackActive(orchestrationClient *golangsdk.ServiceClient, stackName string, stackId string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		n, err := stacks.Get(orchestrationClient, stackName,stackId).Extract()
+		n, err := stacks.Get(orchestrationClient, stackName, stackId).Extract()
 		if err != nil {
 			return nil, "", err
 		}
 
 		log.Printf("[DEBUG] OpenTelekomCloud stack: %+v", n)
-		if n.Status == "CREATE_IN_PROGRESS"  {
-			return n,n.Status, nil
+		if n.Status == "CREATE_IN_PROGRESS" {
+			return n, n.Status, nil
 		}
 
 		return n, n.Status, nil
 	}
 }
 
-func waitForStackDelete(orchestrationClient *golangsdk.ServiceClient, stackName string,stackId string ) resource.StateRefreshFunc {
+func waitForStackDelete(orchestrationClient *golangsdk.ServiceClient, stackName string, stackId string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		log.Printf("[DEBUG] Attempting to delete OpenTelekomCloud Stack %s.\n", stackId)
-		r, err := stacks.Get(orchestrationClient , stackName , stackId).Extract()
+		r, err := stacks.Get(orchestrationClient, stackName, stackId).Extract()
 		log.Printf("[DEBUG] Value after extract: %#v", r)
 		if r.Status == "DELETE_COMPLETE" {
-				log.Printf("[INFO] Successfully deleted OpenTelekomCloud vpc %s", r.ID)
-				return r,"DELETE_COMPLETE",  nil
+			log.Printf("[INFO] Successfully deleted OpenTelekomCloud stack %s", r.ID)
+			return r, "DELETE_COMPLETE", nil
 		}
 
-		err = stacks.Delete(orchestrationClient, stackName ,stackId).ExtractErr()
+		err = stacks.Delete(orchestrationClient, stackName, stackId).ExtractErr()
 		if err != nil {
 			if _, ok := err.(golangsdk.ErrDefault404); ok {
 				log.Printf("[DEBUG] Successfully deleted OpenTelekomCloud Stack %s", stackId)
@@ -389,15 +373,15 @@ func waitForStackDelete(orchestrationClient *golangsdk.ServiceClient, stackName 
 	}
 }
 
-func waitForStackUpdate(orchestrationClient *golangsdk.ServiceClient, stackName string,stackId string) resource.StateRefreshFunc {
+func waitForStackUpdate(orchestrationClient *golangsdk.ServiceClient, stackName string, stackId string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		n, err := stacks.Get(orchestrationClient, stackName,stackId).Extract()
+		n, err := stacks.Get(orchestrationClient, stackName, stackId).Extract()
 		if err != nil {
 			return nil, "", err
 		}
 
 		log.Printf("[DEBUG] OpenTelekomCloud stack: %+v", n)
-		if n.Status == "UPDATE_IN_PROGRESS"  {
+		if n.Status == "UPDATE_IN_PROGRESS" {
 			return n, "UPDATE_IN_PROGRESS", nil
 		}
 
