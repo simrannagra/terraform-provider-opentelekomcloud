@@ -88,8 +88,12 @@ func resourceVirtualPrivateCloudV1Create(d *schema.ResourceData, meta interface{
 		MinTimeout: 3 * time.Second,
 	}
 
-	_, err = stateConf.WaitForState()
-	d.SetId(n.ID)
+	_, stateErr := stateConf.WaitForState()
+	if stateErr != nil {
+		return fmt.Errorf(
+			"Error waiting for Vpc (%s) to become ACTIVE: %s",
+			n.ID, stateErr)
+	}
 
 	return resourceVirtualPrivateCloudV1Read(d, meta)
 
@@ -179,8 +183,13 @@ func waitForVpcActive(vpcClient *golangsdk.ServiceClient, vpcId string) resource
 			return nil, "", err
 		}
 
-		if n.Status == "DOWN" || n.Status == "OK" {
+		if n.Status == "OK" {
 			return n, "ACTIVE", nil
+		}
+
+		//If vpc status is other than Ok, send error
+		if n.Status == "DOWN" {
+			return nil, "", fmt.Errorf("Subnet status: '%s'", n.Status)
 		}
 
 		return n, n.Status, nil
