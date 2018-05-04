@@ -113,6 +113,7 @@ func resourceRtsStackV1() *schema.Resource {
 }
 
 
+
 func resourcetemplateV1(d *schema.ResourceData) *stacks.Template {
 	rawTemplate := d.Get("template").(string)
 	template := new(stacks.Template)
@@ -199,10 +200,6 @@ func resourceRtsStackV1Create(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("%s: %s", data.Status, data.StatusReason)
 	}
 
-
-
-
-
 	return resourceRtsStackV1Read(d, meta)
 
 }
@@ -216,17 +213,11 @@ func resourceRtsStackV1Read(d *schema.ResourceData, meta interface{}) error {
 
 	n, err := stacks.Get(orchestrationClient, d.Get("name").(string),d.Id()).Extract()
 	if err != nil {
-		if _, ok := err.(golangsdk.ErrDefault404); ok {
-			d.SetId("")
-			return nil
-		}
-
+		d.SetId("")
 		return fmt.Errorf("Error retrieving OpenTelekomCloud Stacks: %s", err)
-	}
-	if n.Status == "DELETE_COMPLETE" {
-		return fmt.Errorf( "Removing  Stack %s" + " as it has been already deleted", d.Id())
 
 	}
+
 	log.Printf("[DEBUG] Retrieved Stack %s: %+v", d.Id(), n)
 
 	d.Set("disable_rollback", n.DisableRollback)
@@ -316,6 +307,7 @@ func resourceRtsStackV1Delete(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Error creating OpenTelekomCloud orchestration Client: %s", err)
 	}
 
+
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{"DELETE_IN_PROGRESS",
 						     "CREATE_COMPLETE",
@@ -333,10 +325,19 @@ func resourceRtsStackV1Delete(d *schema.ResourceData, meta interface{}) error {
 		MinTimeout: 3 * time.Second,
 	}
 
-	_, err = stateConf.WaitForState()
+	out, err := stateConf.WaitForState()
+	log.Printf("[DEBUG] outwait %+v", out)
 	if err != nil {
 		return fmt.Errorf("Error deleting OpenTelekomCloud Stack: %s", err)
 	}
+
+	stack := out.(*stacks.RetrievedStack)
+
+	if stack.Status == "DELETE_FAILED" {
+		return fmt.Errorf("%s: %q", stack.Status, stack.StatusReason)
+		d.SetId("")
+	}
+	log.Printf("[INFO] Successfully deleted OpenTelekomCloud vpc %s",)
 
 	d.SetId("")
 	return nil
@@ -358,20 +359,16 @@ func waitForStackActive(orchestrationClient *golangsdk.ServiceClient, stackName 
 	}
 }
 
-func waitForStackDelete(orchestrationClient *golangsdk.ServiceClient, stackName string,stackId string) resource.StateRefreshFunc {
+func waitForStackDelete(orchestrationClient *golangsdk.ServiceClient, stackName string,stackId string ) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		log.Printf("[DEBUG] Attempting to delete OpenTelekomCloud Stack %s.\n", stackId)
-
 		r, err := stacks.Get(orchestrationClient , stackName , stackId).Extract()
 		log.Printf("[DEBUG] Value after extract: %#v", r)
-		if err != nil {
-			if r.Status == "DELETE_COMPLETE" {
-				log.Panic(" Removing  Stack %s" + " as it has been already deleted", stackId)
-				return nil, "", err
-
-			}
-			return r, r.Status, err
+		if r.Status == "DELETE_COMPLETE" {
+				log.Printf("[INFO] Successfully deleted OpenTelekomCloud vpc %s", r.ID)
+				return r,"DELETE_COMPLETE",  nil
 		}
+
 		err = stacks.Delete(orchestrationClient, stackName ,stackId).ExtractErr()
 		if err != nil {
 			if _, ok := err.(golangsdk.ErrDefault404); ok {
@@ -383,6 +380,7 @@ func waitForStackDelete(orchestrationClient *golangsdk.ServiceClient, stackName 
 					return r, r.Status, nil
 				}
 			}
+
 			return r, r.Status, err
 		}
 
