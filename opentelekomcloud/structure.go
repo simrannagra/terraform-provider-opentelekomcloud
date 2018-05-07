@@ -6,6 +6,10 @@ import (
 	"reflect"
 
 	"gopkg.in/yaml.v2"
+	//"log"
+
+	"github.com/huaweicloud/golangsdk/openstack/rts/v1/stacks"
+	"log"
 )
 
 // Takes list of pointers to strings. Expand to an array
@@ -127,10 +131,7 @@ func normalizeJsonString(jsonString interface{}) (string, error) {
 		return s, err
 	}
 
-	// The error is intentionally ignored here to allow empty policies to passthrough validation.
-	// This covers any interpolated values
 	bytes, _ := json.Marshal(j)
-
 	return string(bytes[:]), nil
 }
 
@@ -156,8 +157,20 @@ func checkYamlString(yamlString interface{}) (string, error) {
 
 func normalizeStackTemplate(templateString interface{}) (string, error) {
 	if looksLikeJsonString(templateString) {
-		return normalizeJsonString(templateString)
-	} else {
-		return checkYamlString(templateString)
+		return normalizeJsonString(templateString.(string))
 	}
+
+	return checkYamlString(templateString)
 }
+func flattenStackOutputs(stackOutputs []*stacks.Output) map[string]string {
+	outputs := make(map[string]string, len(stackOutputs))
+	for _, o := range stackOutputs {
+		outputs[*o.OutputKey] = *o.OutputValue
+		outputs[o.Description] = o.Description
+	}
+	log.Printf("value of outputs", outputs)
+	return outputs
+}
+
+
+
