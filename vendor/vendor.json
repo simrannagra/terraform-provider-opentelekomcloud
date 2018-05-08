@@ -964,6 +964,19 @@
 			"revisionTime": "2018-04-10T07:59:14Z"
 		},
 		{
+			"checksumSHA1": "xFq98QlHz4BUFujIcaScck5tzOo=",
+			"origin": "github.com/huaweicloud/terraform-provider-opentelekomcloud/vendor/github.com/huaweicloud/golangsdk/openstack/rts/v1/stacks",
+			"path": "github.com/huaweicloud/golangsdk/openstack/rts/v1/stacks",
+			"revision": "7fb19a260949941061e0bfe15cc940ed2375ceb7",
+			"revisionTime": "2018-05-07T04:41:19Z"
+		},
+		{
+			"checksumSHA1": "rHe8LAEC2wQXrQ5Nc6Bs/CJDFSQ=",
+			"path": "github.com/huaweicloud/golangsdk/openstack/rts/v1/stacktemplates",
+			"revision": "7fb19a260949941061e0bfe15cc940ed2375ceb7",
+			"revisionTime": "2018-05-07T04:41:19Z"
+		},
+		{
 			"checksumSHA1": "O9n6p7B1QqU6ryYgc8hD9sxIq+A=",
 			"path": "github.com/huaweicloud/golangsdk/openstack/utils",
 			"revision": "888f77744ab7c65bb4d448d5b5313edba29e76c7",
