@@ -9,7 +9,6 @@ import (
 	//"log"
 
 	"github.com/huaweicloud/golangsdk/openstack/rts/v1/stacks"
-	"log"
 )
 
 // Takes list of pointers to strings. Expand to an array

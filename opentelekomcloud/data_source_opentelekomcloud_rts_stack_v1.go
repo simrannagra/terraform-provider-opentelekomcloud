@@ -21,10 +21,6 @@ func dataSourceStackV1() *schema.Resource {
 				ForceNew: true,
 				Computed: true,
 			},
-			"tenant_id": &schema.Schema{
-				Type:     schema.TypeString,
-				Optional: true,
-			},
 			"status": &schema.Schema{
 				Type:     schema.TypeString,
 				Optional: true,
@@ -126,7 +122,6 @@ func dataSourceStackV1Read(d *schema.ResourceData, meta interface{}) error {
 	n, err := stacks.Get(orchestrationClient, stack.Name, stack.ID).Extract()
 	log.Printf("[DEBUG] Retrieved n %+v", n)
 	d.Set("disable_rollback", n.DisableRollback)
-	d.Set("tenant_id", n.TenantId)
 	d.Set("capabilities", n.Capabilities)
 	d.Set("notification_topics", n.NotificationTopics)
 	d.Set("timeout_mins", n.Timeout)
