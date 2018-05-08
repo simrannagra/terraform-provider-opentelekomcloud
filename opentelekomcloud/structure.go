@@ -168,7 +168,6 @@ func flattenStackOutputs(stackOutputs []*stacks.Output) map[string]string {
 		outputs[*o.OutputKey] = *o.OutputValue
 		outputs[o.Description] = o.Description
 	}
-	log.Printf("value of outputs", outputs)
 	return outputs
 }
 

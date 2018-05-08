@@ -1,4 +1,5 @@
 package opentelekomcloud
+
 import (
 	"fmt"
 	"github.com/huaweicloud/golangsdk/openstack/rts/v1/stacks"
@@ -8,8 +9,7 @@ import (
 	"reflect"
 	"unsafe"
 
-	)
-
+)
 func dataSourceStackV1() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceStackV1Read,
@@ -20,6 +20,10 @@ func dataSourceStackV1() *schema.Resource {
 				Optional: true,
 				ForceNew: true,
 				Computed: true,
+			},
+			"tenant_id": &schema.Schema{
+				Type:     schema.TypeString,
+				Optional: true,
 			},
 			"status": &schema.Schema{
 				Type:     schema.TypeString,
@@ -54,7 +58,7 @@ func dataSourceStackV1() *schema.Resource {
 			},
 			"id": &schema.Schema{
 				Type:     schema.TypeString,
-				Computed: true,
+				Optional: true,
 			},
 			"disable_rollback": &schema.Schema{
 				Type:     schema.TypeBool,
@@ -92,10 +96,10 @@ func dataSourceStackV1Read(d *schema.ResourceData, meta interface{}) error {
 	listOpts := stacks.ListOpts{
 		Status:        	d.Get("status").(string),
 		Name: 			d.Get("name").(string),
+		ID:				d.Get("id").(string),
 	}
-	pages, err := stacks.List(orchestrationClient, listOpts).AllPages()
-	refinedStacks, err := stacks.ExtractStacks(pages)
 
+	refinedStacks, err :=stacks.List(orchestrationClient, listOpts)
 	if err != nil {
 		return fmt.Errorf("Unable to retrieve stacks: %s", err)
 	}
@@ -104,11 +108,11 @@ func dataSourceStackV1Read(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Your query returned no results. " +
 			"Please change your search criteria and try again.")
 	}
-
 	if len(refinedStacks) > 1 {
 		return fmt.Errorf("Your query returned more than one result." +
 			" Please try a more specific search criteria")
 	}
+
 	stack := refinedStacks[0]
 	log.Printf("[INFO] Retrieved Stacks using given filter %s: %+v", stack.ID, stack)
 	d.SetId(stack.ID)
@@ -122,6 +126,7 @@ func dataSourceStackV1Read(d *schema.ResourceData, meta interface{}) error {
 	n, err := stacks.Get(orchestrationClient, stack.Name, stack.ID).Extract()
 	log.Printf("[DEBUG] Retrieved n %+v", n)
 	d.Set("disable_rollback", n.DisableRollback)
+	d.Set("tenant_id", n.TenantId)
 	d.Set("capabilities", n.Capabilities)
 	d.Set("notification_topics", n.NotificationTopics)
 	d.Set("timeout_mins", n.Timeout)
@@ -132,11 +137,10 @@ func dataSourceStackV1Read(d *schema.ResourceData, meta interface{}) error {
 	d.Set("outputs", flattenStackOutputs(n.Outputs))
 	d.Set("parameters", n.Parameters)
 
+
 	fmt.Print(string(TemplateList))
 	template := BytesToString(TemplateList)
-	log.Printf("value of str1", template)
 	d.Set("template_body", template)
-	log.Printf("template set data", d.Set("template_body", template))
 
 	return nil
 }

@@ -34,7 +34,7 @@ func (r CreateResult) Extract() (*CreatedStack, error) {
 
 // StackPage is a pagination.Pager that is returned from a call to the List function.
 type StackPage struct {
-	pagination.SinglePageBase
+	pagination.LinkedPageBase
 }
 
 // IsEmpty returns true if a ListResult contains no Stacks.
@@ -92,6 +92,7 @@ type RetrievedStack struct {
 	Description         string                   `json:"description"`
 	DisableRollback     bool                     `json:"disable_rollback"`
 	ID                  string                   `json:"id"`
+	TenantId			string					  `json:"tenant_id"`
 	Links               []golangsdk.Link       	  `json:"links"`
 	NotificationTopics  []interface{}            `json:"notification_topics"`
 	Outputs             []*Output				 `json:"outputs"`

@@ -4,6 +4,7 @@ import (
 	"github.com/huaweicloud/golangsdk"
 	"github.com/huaweicloud/golangsdk/pagination"
 	"strings"
+	"reflect"
 )
 
 // CreateOptsBuilder is the interface options structs have to satisfy in order
@@ -129,6 +130,7 @@ type ListOptsBuilder interface {
 // by a particular network attribute. SortDir sets the direction, and is either
 // `asc' or `desc'. Marker and Limit are used for pagination.
 type ListOpts struct {
+	ID 		string 	`q:"id"`
 	Status  string  `q:"status"`
 	Name    string  `q:"name"`
 	Marker  string  `q:"marker"`
@@ -146,22 +148,64 @@ func (opts ListOpts) ToStackListQuery() (string, error) {
 	return q.String(), nil
 }
 
-// List returns a Pager which allows you to iterate over a collection of
-// stacks. It accepts a ListOpts struct, which allows you to filter and sort
-// the returned collection for greater efficiency.
-func List(c *golangsdk.ServiceClient, opts ListOptsBuilder) pagination.Pager {
-	url := listURL(c)
-	if opts != nil {
-		query, err := opts.ToStackListQuery()
-		if err != nil {
-			return pagination.Pager{Err: err}
+func List(c *golangsdk.ServiceClient, opts ListOpts) ([]ListedStack, error) {
+	u := listURL(c)
+	pages, err := pagination.NewPager(c, u, func(r pagination.PageResult) pagination.Page {
+		return StackPage{pagination.LinkedPageBase{PageResult: r}}
+	}).AllPages()
+
+	allStacks, err := ExtractStacks(pages)
+	if err != nil {
+		return nil, err
+	}
+
+	return FilterStacks(allStacks, opts)
+}
+
+func FilterStacks(stacks []ListedStack, opts ListOpts) ([]ListedStack, error) {
+
+	var refinedStacks []ListedStack
+	var matched bool
+	m := map[string]interface{}{}
+
+
+	if opts.ID != "" {
+		m["ID"] = opts.ID
+	}
+	if opts.Name != "" {
+		m["Name"] = opts.Name
+	}
+	if opts.Status != "" {
+		m["Status"] = opts.Status
+	}
+
+
+	if len(m) > 0 && len(stacks) > 0 {
+		for _, stack := range stacks {
+			matched = true
+
+			for key, value := range m {
+				if sVal := getStructField(&stack, key); !(sVal == value) {
+					matched = false
+				}
+			}
+
+			if matched {
+				refinedStacks = append(refinedStacks, stack)
+			}
 		}
-		url += query
+
+	} else {
+		refinedStacks = stacks
 	}
-	createPage := func(r pagination.PageResult) pagination.Page {
-		return StackPage{pagination.SinglePageBase(r)}
-	}
-	return pagination.NewPager(c, url, createPage)
+
+	return refinedStacks, nil
+}
+
+func getStructField(v *ListedStack, field string) string {
+	r := reflect.ValueOf(v)
+	f := reflect.Indirect(r).FieldByName(field)
+	return string(f.String())
 }
 
 func Get(c *golangsdk.ServiceClient, stackName, stackID string) (r GetResult) {
