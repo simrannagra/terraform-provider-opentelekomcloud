@@ -1,19 +1,36 @@
 package stacks
 
 import (
-
-	"time"
-
+	"encoding/json"
 	"github.com/huaweicloud/golangsdk"
 	"github.com/huaweicloud/golangsdk/pagination"
-	"strings"
-	"fmt"
-	"io"
+	"time"
 	"bytes"
 	"reflect"
+	"fmt"
+	"strings"
+	"io"
 )
+// CreatedStack represents the object extracted from a Create operation.
+type CreatedStack struct {
+	ID    string             `json:"id"`
+	Links []golangsdk.Link `json:"links"`
+}
 
+// CreateResult represents the result of a Create operation.
+type CreateResult struct {
+	golangsdk.Result
+}
 
+// Extract returns a pointer to a CreatedStack object and is called after a
+// Create operation.
+func (r CreateResult) Extract() (*CreatedStack, error) {
+	var s struct {
+		CreatedStack *CreatedStack `json:"stack"`
+	}
+	err := r.ExtractInto(&s)
+	return s.CreatedStack, err
+}
 
 // StackPage is a pagination.Pager that is returned from a call to the List function.
 type StackPage struct {
@@ -28,15 +45,33 @@ func (r StackPage) IsEmpty() (bool, error) {
 
 // ListedStack represents an element in the slice extracted from a List operation.
 type ListedStack struct {
-	CreationTime time.Time          `json:"-"`
-	Description  string             `json:"description"`
-	ID           string             `json:"id"`
+	CreationTime time.Time        `json:"-"`
+	Description  string           `json:"description"`
+	ID           string           `json:"id"`
 	Links        []golangsdk.Link `json:"links"`
-	Name         string             `json:"stack_name"`
-	Status       string             `json:"stack_status"`
-	StatusReason string             `json:"stack_status_reason"`
-	Tags         []string           `json:"tags"`
-	UpdatedTime  time.Time          `json:"-"`
+	Name         string           `json:"stack_name"`
+	Status       string           `json:"stack_status"`
+	StatusReason string           `json:"stack_status_reason"`
+	UpdatedTime  time.Time        `json:"-"`
+}
+
+func (r *ListedStack) UnmarshalJSON(b []byte) error {
+	type tmp ListedStack
+	var s struct {
+		tmp
+		CreationTime golangsdk.JSONRFC3339NoZ `json:"creation_time"`
+		UpdatedTime  golangsdk.JSONRFC3339NoZ `json:"updated_time"`
+	}
+	err := json.Unmarshal(b, &s)
+	if err != nil {
+		return err
+	}
+	*r = ListedStack(s.tmp)
+
+	r.CreationTime = time.Time(s.CreationTime)
+	r.UpdatedTime = time.Time(s.UpdatedTime)
+
+	return nil
 }
 
 // ExtractStacks extracts and returns a slice of ListedStack. It is used while iterating
@@ -49,6 +84,7 @@ func ExtractStacks(r pagination.Page) ([]ListedStack, error) {
 	return s.ListedStacks, err
 }
 
+// RetrievedStack represents the object extracted from a Get operation.
 // RetrievedStack represents the object extracted from a Get operation.
 type RetrievedStack struct {
 	Capabilities        []interface{}            `json:"capabilities"`
@@ -114,19 +150,49 @@ func (s *Output) SetOutputValue(v string) *Output {
 	return s
 }
 
+// RetrievedStack represents the object extracted from a Get operation.
+func (r *RetrievedStack) UnmarshalJSON(b []byte) error {
+	type tmp RetrievedStack
+	var s struct {
+		tmp
+		CreationTime golangsdk.JSONRFC3339NoZ `json:"creation_time"`
+		UpdatedTime  golangsdk.JSONRFC3339NoZ `json:"updated_time"`
+	}
+	err := json.Unmarshal(b, &s)
+	if err != nil {
+		return err
+	}
+	*r = RetrievedStack(s.tmp)
+
+	r.CreationTime = time.Time(s.CreationTime)
+	r.UpdatedTime = time.Time(s.UpdatedTime)
+
+	return nil
+}
+
 // GetResult represents the result of a Get operation.
 type GetResult struct {
 	golangsdk.Result
 }
 
-// Extract returns a pointer to a RetrievedStack object and is called after a
-// Get operation.
+// Extract returns a pointer to a CreatedStack object and is called after a
+// Create operation.
 func (r GetResult) Extract() (*RetrievedStack, error) {
 	var s struct {
 		Stack *RetrievedStack `json:"stack"`
 	}
 	err := r.ExtractInto(&s)
 	return s.Stack, err
+}
+
+// UpdateResult represents the result of a Update operation.
+type UpdateResult struct {
+	golangsdk.ErrResult
+}
+
+// DeleteResult represents the result of a Delete operation.
+type DeleteResult struct {
+	golangsdk.ErrResult
 }
 
 // Prettify returns the string representation of a value.

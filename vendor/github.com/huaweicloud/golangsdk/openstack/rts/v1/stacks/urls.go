@@ -14,3 +14,10 @@ func listURL(c *golangsdk.ServiceClient) string {
 func getURL(c *golangsdk.ServiceClient, name, id string) string {
 	return c.ServiceURL("stacks", name, id)
 }
+func updateURL(c *golangsdk.ServiceClient, name, id string) string {
+	return getURL(c, name, id)
+}
+
+func deleteURL(c *golangsdk.ServiceClient, name, id string) string {
+	return getURL(c, name, id)
+}

@@ -1,10 +1,101 @@
 package stacks
 
 import (
-
 	"github.com/huaweicloud/golangsdk"
 	"github.com/huaweicloud/golangsdk/pagination"
+	"strings"
 )
+
+// CreateOptsBuilder is the interface options structs have to satisfy in order
+// to be used in the main Create operation in this package. Since many
+// extensions decorate or modify the common logic, it is useful for them to
+// satisfy a basic interface in order for them to be used.
+type CreateOptsBuilder interface {
+	ToStackCreateMap() (map[string]interface{}, error)
+}
+
+// CreateOpts is the common options struct used in this package's Create
+// operation.
+type CreateOpts struct {
+	// The name of the stack. It must start with an alphabetic character.
+	Name string `json:"stack_name" required:"true"`
+	// A structure that contains either the template file or url. Call the
+	// associated methods to extract the information relevant to send in a create request.
+	TemplateOpts *Template `json:"-" required:"true"`
+	// Enables or disables deletion of all stack resources when a stack
+	// creation fails. Default is true, meaning all resources are not deleted when
+	// stack creation fails.
+	DisableRollback *bool `json:"disable_rollback,omitempty"`
+	// A structure that contains details for the environment of the stack.
+	EnvironmentOpts *Environment `json:"-"`
+	// User-defined parameters to pass to the template.
+	Parameters map[string]string `json:"parameters,omitempty"`
+	// The timeout for stack creation in minutes.
+	Timeout int `json:"timeout_mins,omitempty"`
+	// A list of tags to assosciate with the Stack
+	Tags []string `json:"-"`
+
+}
+
+// ToStackCreateMap casts a CreateOpts struct to a map.
+func (opts CreateOpts) ToStackCreateMap() (map[string]interface{}, error) {
+	b, err := golangsdk.BuildRequestBody(opts, "")
+	if err != nil {
+		return nil, err
+	}
+
+	if err := opts.TemplateOpts.Parse(); err != nil {
+		return nil, err
+	}
+
+	if err := opts.TemplateOpts.getFileContents(opts.TemplateOpts.Parsed, ignoreIfTemplate, true); err != nil {
+		return nil, err
+	}
+	opts.TemplateOpts.fixFileRefs()
+	b["template"] = string(opts.TemplateOpts.Bin)
+
+	files := make(map[string]string)
+	for k, v := range opts.TemplateOpts.Files {
+		files[k] = v
+	}
+
+	if opts.EnvironmentOpts != nil {
+		if err := opts.EnvironmentOpts.Parse(); err != nil {
+			return nil, err
+		}
+		if err := opts.EnvironmentOpts.getRRFileContents(ignoreIfEnvironment); err != nil {
+			return nil, err
+		}
+		opts.EnvironmentOpts.fixFileRefs()
+		for k, v := range opts.EnvironmentOpts.Files {
+			files[k] = v
+		}
+		b["environment"] = string(opts.EnvironmentOpts.Bin)
+	}
+
+	if len(files) > 0 {
+		b["files"] = files
+	}
+
+	if opts.Tags != nil {
+		b["tags"] = strings.Join(opts.Tags, ",")
+	}
+
+	return b, nil
+}
+
+// Create accepts a CreateOpts struct and creates a new stack using the values
+// provided.
+func Create(c *golangsdk.ServiceClient, opts CreateOptsBuilder) (r CreateResult) {
+	b, err := opts.ToStackCreateMap()
+	if err != nil {
+		r.Err = err
+		return
+	}
+	_, r.Err = c.Post(createURL(c), b, &r.Body, nil)
+	return
+}
+
 // SortDir is a type for specifying in which direction to sort a list of stacks.
 type SortDir string
 
@@ -26,7 +117,8 @@ var (
 	SortUpdatedAt SortKey = "updated_at"
 )
 
-
+// ListOptsBuilder allows extensions to add additional parameters to the
+// List request.
 type ListOptsBuilder interface {
 	ToStackListQuery() (string, error)
 }
@@ -72,13 +164,98 @@ func List(c *golangsdk.ServiceClient, opts ListOptsBuilder) pagination.Pager {
 	return pagination.NewPager(c, url, createPage)
 }
 
-
-// Get retreives a stack based on the stack name and stack ID.
 func Get(c *golangsdk.ServiceClient, stackName, stackID string) (r GetResult) {
 	_, r.Err = c.Get(getURL(c, stackName, stackID), &r.Body, nil)
 	return
 }
 
+// UpdateOptsBuilder is the interface options structs have to satisfy in order
+// to be used in the Update operation in this package.
+type UpdateOptsBuilder interface {
+	ToStackUpdateMap() (map[string]interface{}, error)
+}
 
+// UpdateOpts contains the common options struct used in this package's Update
+// operation.
+type UpdateOpts struct {
+	// A structure that contains either the template file or url. Call the
+	// associated methods to extract the information relevant to send in a create request.
+	TemplateOpts *Template `json:"-" required:"true"`
+	// A structure that contains details for the environment of the stack.
+	EnvironmentOpts *Environment `json:"-"`
+	// User-defined parameters to pass to the template.
+	Parameters map[string]string `json:"parameters,omitempty"`
+	// The timeout for stack creation in minutes.
+	Timeout int `json:"timeout_mins,omitempty"`
+	// Enables or disables deletion of all stack resources when a stack
+	// creation fails. Default is true, meaning all resources are not deleted when
+	// stack creation fails.
+	DisableRollback *bool `json:"disable_rollback,omitempty"`
+	// A list of tags to assosciate with the Stack
+	Tags []string `json:"-"`
+}
 
+// ToStackUpdateMap casts a CreateOpts struct to a map.
+func (opts UpdateOpts) ToStackUpdateMap() (map[string]interface{}, error) {
+	b, err := golangsdk.BuildRequestBody(opts, "")
+	if err != nil {
+		return nil, err
+	}
 
+	if err := opts.TemplateOpts.Parse(); err != nil {
+		return nil, err
+	}
+
+	if err := opts.TemplateOpts.getFileContents(opts.TemplateOpts.Parsed, ignoreIfTemplate, true); err != nil {
+		return nil, err
+	}
+	opts.TemplateOpts.fixFileRefs()
+	b["template"] = string(opts.TemplateOpts.Bin)
+
+	files := make(map[string]string)
+	for k, v := range opts.TemplateOpts.Files {
+		files[k] = v
+	}
+
+	if opts.EnvironmentOpts != nil {
+		if err := opts.EnvironmentOpts.Parse(); err != nil {
+			return nil, err
+		}
+		if err := opts.EnvironmentOpts.getRRFileContents(ignoreIfEnvironment); err != nil {
+			return nil, err
+		}
+		opts.EnvironmentOpts.fixFileRefs()
+		for k, v := range opts.EnvironmentOpts.Files {
+			files[k] = v
+		}
+		b["environment"] = string(opts.EnvironmentOpts.Bin)
+	}
+
+	if len(files) > 0 {
+		b["files"] = files
+	}
+
+	if opts.Tags != nil {
+		b["tags"] = strings.Join(opts.Tags, ",")
+	}
+
+	return b, nil
+}
+
+// Update accepts an UpdateOpts struct and updates an existing stack using the values
+// provided.
+func Update(c *golangsdk.ServiceClient, stackName, stackID string, opts UpdateOptsBuilder) (r UpdateResult) {
+	b, err := opts.ToStackUpdateMap()
+	if err != nil {
+		r.Err = err
+		return
+	}
+	_, r.Err = c.Put(updateURL(c, stackName, stackID), b, nil, nil)
+	return
+}
+
+// Delete deletes a stack based on the stack name and stack ID.
+func Delete(c *golangsdk.ServiceClient, stackName, stackID string) (r DeleteResult) {
+	_, r.Err = c.Delete(deleteURL(c, stackName, stackID), nil)
+	return
+}

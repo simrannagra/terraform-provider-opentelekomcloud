@@ -87,11 +87,10 @@ func resourceRtsStackV1() *schema.Resource {
 				Optional: true,
 				Computed: true,
 			},
-			"outputs": &schema.Schema{
-				Type:     schema.TypeSet,
+			"outputs": {
+				Type:     schema.TypeMap,
+				Optional: true,
 				Computed: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-				Set:      schema.HashString,
 			},
 			"capabilities": &schema.Schema{
 				Type:     schema.TypeSet,
@@ -215,7 +214,7 @@ func resourceRtsStackV1Read(d *schema.ResourceData, meta interface{}) error {
 	d.Set("parameters", n.Parameters)
 	d.Set("status_reason", n.StatusReason)
 	d.Set("name", n.Name)
-	d.Set("outputs", n.Outputs)
+	d.Set("outputs", flattenStackOutputs(n.Outputs))
 	d.Set("capabilities", n.Capabilities)
 	d.Set("notification_topics", n.NotificationTopics)
 	d.Set("timeout_mins", n.Timeout)
