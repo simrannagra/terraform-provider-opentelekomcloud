@@ -2,18 +2,18 @@ package opentelekomcloud
 
 import (
 	"fmt"
-	"github.com/gophercloud/gophercloud/openstack/networking/v1/vpcs"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/huaweicloud/golangsdk/openstack/networking/v1/vpcs"
 	"log"
 	"time"
 
-	"github.com/gophercloud/gophercloud"
 	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/huaweicloud/golangsdk"
 )
 
 func resourceVirtualPrivateCloudV1() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceVirtualPrivateCloudV1Create, //providers.go
+		Create: resourceVirtualPrivateCloudV1Create,
 		Read:   resourceVirtualPrivateCloudV1Read,
 		Update: resourceVirtualPrivateCloudV1Update,
 		Delete: resourceVirtualPrivateCloudV1Delete,
@@ -23,7 +23,7 @@ func resourceVirtualPrivateCloudV1() *schema.Resource {
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(10 * time.Minute),
-			Delete: schema.DefaultTimeout(10 * time.Minute),
+			Delete: schema.DefaultTimeout(3 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{ //request and response parameters
@@ -47,12 +47,10 @@ func resourceVirtualPrivateCloudV1() *schema.Resource {
 			},
 			"status": &schema.Schema{
 				Type:     schema.TypeString,
-				ForceNew: false,
 				Computed: true,
 			},
 			"shared": &schema.Schema{
 				Type:     schema.TypeBool,
-				ForceNew: false,
 				Computed: true,
 			},
 		},
@@ -61,9 +59,7 @@ func resourceVirtualPrivateCloudV1() *schema.Resource {
 
 func resourceVirtualPrivateCloudV1Create(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*Config)
-	vpcClient, err := config.vpcV1Client(GetRegion(d, config))
-
-	log.Printf("[DEBUG] Value of vpcClient: %#v", vpcClient)
+	vpcClient, err := config.networkingV1Client(GetRegion(d, config))
 
 	if err != nil {
 		return fmt.Errorf("Error creating OpenTelekomCloud vpc client: %s", err)
@@ -74,7 +70,6 @@ func resourceVirtualPrivateCloudV1Create(d *schema.ResourceData, meta interface{
 		CIDR: d.Get("cidr").(string),
 	}
 
-	log.Printf("[DEBUG] Create Options: %#v", createOpts)
 	n, err := vpcs.Create(vpcClient, createOpts).Extract()
 
 	if err != nil {
@@ -83,8 +78,6 @@ func resourceVirtualPrivateCloudV1Create(d *schema.ResourceData, meta interface{
 	d.SetId(n.ID)
 
 	log.Printf("[INFO] Vpc ID: %s", n.ID)
-
-	log.Printf("[DEBUG] Waiting for OpenTelekomCloud Vpc (%s) to become available", n.ID)
 
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{"CREATING"},
@@ -95,8 +88,12 @@ func resourceVirtualPrivateCloudV1Create(d *schema.ResourceData, meta interface{
 		MinTimeout: 3 * time.Second,
 	}
 
-	_, err = stateConf.WaitForState()
-	d.SetId(n.ID)
+	_, stateErr := stateConf.WaitForState()
+	if stateErr != nil {
+		return fmt.Errorf(
+			"Error waiting for Vpc (%s) to become ACTIVE: %s",
+			n.ID, stateErr)
+	}
 
 	return resourceVirtualPrivateCloudV1Read(d, meta)
 
@@ -104,22 +101,20 @@ func resourceVirtualPrivateCloudV1Create(d *schema.ResourceData, meta interface{
 
 func resourceVirtualPrivateCloudV1Read(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*Config)
-	vpcClient, err := config.vpcV1Client(GetRegion(d, config))
+	vpcClient, err := config.networkingV1Client(GetRegion(d, config))
 	if err != nil {
 		return fmt.Errorf("Error creating OpenTelekomCloud Vpc client: %s", err)
 	}
 
 	n, err := vpcs.Get(vpcClient, d.Id()).Extract()
 	if err != nil {
-		if _, ok := err.(gophercloud.ErrDefault404); ok {
+		if _, ok := err.(golangsdk.ErrDefault404); ok {
 			d.SetId("")
 			return nil
 		}
 
 		return fmt.Errorf("Error retrieving OpenTelekomCloud Vpc: %s", err)
 	}
-
-	log.Printf("[DEBUG] Retrieved Vpc %s: %+v", d.Id(), n)
 
 	d.Set("id", n.ID)
 	d.Set("name", n.Name)
@@ -133,40 +128,32 @@ func resourceVirtualPrivateCloudV1Read(d *schema.ResourceData, meta interface{})
 
 func resourceVirtualPrivateCloudV1Update(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*Config)
-	vpcClient, err := config.vpcV1Client(GetRegion(d, config))
+	vpcClient, err := config.networkingV1Client(GetRegion(d, config))
 	if err != nil {
 		return fmt.Errorf("Error creating OpenTelekomCloud Vpc: %s", err)
 	}
 
-	var update bool
 	var updateOpts vpcs.UpdateOpts
 
 	if d.HasChange("name") {
-		update = true
 		updateOpts.Name = d.Get("name").(string)
 	}
 	if d.HasChange("cidr") {
-		update = true
 		updateOpts.CIDR = d.Get("cidr").(string)
 	}
 
-	log.Printf("[DEBUG] Updating Vpc %s with options: %+v", d.Id(), updateOpts)
-
-	if update {
-		log.Printf("[DEBUG] Updating Vpc %s with options: %#v", d.Id(), updateOpts)
-		_, err = vpcs.Update(vpcClient, d.Id(), updateOpts).Extract()
-		if err != nil {
-			return fmt.Errorf("Error updating OpenTelekomCloud Vpc: %s", err)
-		}
+	_, err = vpcs.Update(vpcClient, d.Id(), updateOpts).Extract()
+	if err != nil {
+		return fmt.Errorf("Error updating OpenTelekomCloud Vpc: %s", err)
 	}
+
 	return resourceVirtualPrivateCloudV1Read(d, meta)
 }
 
 func resourceVirtualPrivateCloudV1Delete(d *schema.ResourceData, meta interface{}) error {
-	log.Printf("[DEBUG] Destroy vpc: %s", d.Id())
 
 	config := meta.(*Config)
-	vpcClient, err := config.vpcV1Client(GetRegion(d, config))
+	vpcClient, err := config.networkingV1Client(GetRegion(d, config))
 	if err != nil {
 		return fmt.Errorf("Error creating OpenTelekomCloud vpc: %s", err)
 	}
@@ -189,45 +176,46 @@ func resourceVirtualPrivateCloudV1Delete(d *schema.ResourceData, meta interface{
 	return nil
 }
 
-func waitForVpcActive(vpcClient *gophercloud.ServiceClient, vpcId string) resource.StateRefreshFunc {
+func waitForVpcActive(vpcClient *golangsdk.ServiceClient, vpcId string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		n, err := vpcs.Get(vpcClient, vpcId).Extract()
 		if err != nil {
 			return nil, "", err
 		}
 
-		log.Printf("[DEBUG] OpenTelekomCloud VPC Client: %+v", n)
-		if n.Status == "DOWN" || n.Status == "OK" {
+		if n.Status == "OK" {
 			return n, "ACTIVE", nil
+		}
+
+		//If vpc status is other than Ok, send error
+		if n.Status == "DOWN" {
+			return nil, "", fmt.Errorf("Vpc status: '%s'", n.Status)
 		}
 
 		return n, n.Status, nil
 	}
 }
 
-func waitForVpcDelete(vpcClient *gophercloud.ServiceClient, vpcId string) resource.StateRefreshFunc {
+func waitForVpcDelete(vpcClient *golangsdk.ServiceClient, vpcId string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		log.Printf("[DEBUG] Attempting to delete OpenTelekomCloud vpc %s.\n", vpcId)
 
 		r, err := vpcs.Get(vpcClient, vpcId).Extract()
-		log.Printf("[DEBUG] Value after extract: %#v", r)
 		if err != nil {
-			if _, ok := err.(gophercloud.ErrDefault404); ok {
-				log.Printf("[DEBUG] Successfully deleted OpenTelekomCloud vpc %s", vpcId)
+			if _, ok := err.(golangsdk.ErrDefault404); ok {
+				log.Printf("[INFO] Successfully deleted OpenTelekomCloud vpc %s", vpcId)
 				return r, "DELETED", nil
 			}
 			return r, "ACTIVE", err
 		}
 
 		err = vpcs.Delete(vpcClient, vpcId).ExtractErr()
-		log.Printf("[DEBUG] Value if error: %#v", err)
 
 		if err != nil {
-			if _, ok := err.(gophercloud.ErrDefault404); ok {
-				log.Printf("[DEBUG] Successfully deleted OpenTelekomCloud vpc %s", vpcId)
+			if _, ok := err.(golangsdk.ErrDefault404); ok {
+				log.Printf("[INFO] Successfully deleted OpenTelekomCloud vpc %s", vpcId)
 				return r, "DELETED", nil
 			}
-			if errCode, ok := err.(gophercloud.ErrUnexpectedResponseCode); ok {
+			if errCode, ok := err.(golangsdk.ErrUnexpectedResponseCode); ok {
 				if errCode.Actual == 409 {
 					return r, "ACTIVE", nil
 				}
@@ -235,7 +223,6 @@ func waitForVpcDelete(vpcClient *gophercloud.ServiceClient, vpcId string) resour
 			return r, "ACTIVE", err
 		}
 
-		log.Printf("[DEBUG] OpenTelekomCloud vpc %s still active.\n", vpcId)
 		return r, "ACTIVE", nil
 	}
 }

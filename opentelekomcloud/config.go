@@ -358,13 +358,6 @@ func (c *Config) computeV2Client(region string) (*gophercloud.ServiceClient, err
 	})
 }
 
-func (c *Config) vpcV1Client(region string) (*gophercloud.ServiceClient, error) {
-	return openstack.NewVpcV1(c.OsClient, gophercloud.EndpointOpts{
-		Region:       c.determineRegion(region),
-		Availability: c.getEndpointType()})
-
-}
-
 func (c *Config) dnsV2Client(region string) (*gophercloud.ServiceClient, error) {
 	return openstack.NewDNSV2(c.OsClient, gophercloud.EndpointOpts{
 		Region:       c.determineRegion(region),
@@ -390,6 +383,20 @@ func (c *Config) networkingV2Client(region string) (*gophercloud.ServiceClient, 
 	return openstack.NewNetworkV2(c.OsClient, gophercloud.EndpointOpts{
 		Region:       c.determineRegion(region),
 		Availability: c.getEndpointType(),
+	})
+}
+
+func (c *Config) networkingHwV2Client(region string) (*golangsdk.ServiceClient, error) {
+	return huaweisdk.NewNetworkV2(c.HwClient, golangsdk.EndpointOpts{
+		Region:       c.determineRegion(region),
+		Availability: c.getHwEndpointType(),
+	})
+}
+
+func (c *Config) networkingV1Client(region string) (*golangsdk.ServiceClient, error) {
+	return huaweisdk.NewNetworkV1(c.HwClient, golangsdk.EndpointOpts{
+		Region:       c.determineRegion(region),
+		Availability: c.getHwEndpointType(),
 	})
 }
 

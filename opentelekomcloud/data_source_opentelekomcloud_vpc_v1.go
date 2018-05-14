@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/gophercloud/gophercloud/openstack/networking/v1/vpcs"
+	"github.com/huaweicloud/golangsdk/openstack/networking/v1/vpcs"
 
 	"github.com/hashicorp/terraform/helper/schema"
 )
@@ -62,7 +62,7 @@ func dataSourceVirtualPrivateCloudVpcV1() *schema.Resource {
 
 func dataSourceVirtualPrivateCloudV1Read(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*Config)
-	vpcClient, err := config.vpcV1Client(GetRegion(d, config))
+	vpcClient, err := config.networkingV1Client(GetRegion(d, config))
 
 	listOpts := vpcs.ListOpts{
 		ID:     d.Get("id").(string),
@@ -72,7 +72,6 @@ func dataSourceVirtualPrivateCloudV1Read(d *schema.ResourceData, meta interface{
 	}
 
 	refinedVpcs, err := vpcs.List(vpcClient, listOpts)
-	log.Printf("[DEBUG] Value of allVpcs: %#v", refinedVpcs)
 	if err != nil {
 		return fmt.Errorf("Unable to retrieve vpcs: %s", err)
 	}
@@ -98,7 +97,7 @@ func dataSourceVirtualPrivateCloudV1Read(d *schema.ResourceData, meta interface{
 		s = append(s, mapping)
 	}
 
-	log.Printf("[DEBUG] Retrieved Vpcs using given filter %s: %+v", Vpc.ID, Vpc)
+	log.Printf("[INFO] Retrieved Vpc using given filter %s: %+v", Vpc.ID, Vpc)
 	d.SetId(Vpc.ID)
 
 	d.Set("name", Vpc.Name)
