@@ -10,6 +10,7 @@ import (
 	"unsafe"
 
 )
+
 func dataSourceStackV1() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceStackV1Read,
@@ -31,26 +32,23 @@ func dataSourceStackV1() *schema.Resource {
 			},
 			"status_reason": &schema.Schema{
 				Type:     schema.TypeString,
-				Optional: true,
+				Computed: true,
 			},
 			"description": &schema.Schema{
 				Type:     schema.TypeString,
-				Optional: true,
+				Computed: true,
 			},
 			"outputs": {
 				Type:     schema.TypeMap,
-				Optional: true,
 				Computed: true,
 			},
 			"parameters": &schema.Schema{
 				Type:     schema.TypeMap,
-				Optional: true,
 				Computed: true,
 			},
 			"timeout_mins": &schema.Schema{
 				Type:     schema.TypeInt,
-				Optional: true,
-
+				Computed: true,
 			},
 			"id": &schema.Schema{
 				Type:     schema.TypeString,
@@ -58,7 +56,6 @@ func dataSourceStackV1() *schema.Resource {
 			},
 			"disable_rollback": &schema.Schema{
 				Type:     schema.TypeBool,
-				Optional: true,
 				Computed: true,
 			},
 			"capabilities":  &schema.Schema{
@@ -77,11 +74,9 @@ func dataSourceStackV1() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-
 		},
 	}
 }
-
 
 func dataSourceStackV1Read(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*Config)
