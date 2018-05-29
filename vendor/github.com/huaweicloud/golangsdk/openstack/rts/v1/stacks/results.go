@@ -92,6 +92,7 @@ type RetrievedStack struct {
 	Description         string                   `json:"description"`
 	DisableRollback     bool                     `json:"disable_rollback"`
 	ID                  string                   `json:"id"`
+	TenantId			string					  `json:"tenant_id"`
 	Links               []golangsdk.Link       	  `json:"links"`
 	NotificationTopics  []interface{}            `json:"notification_topics"`
 	Outputs             []*Output				 `json:"outputs"`
