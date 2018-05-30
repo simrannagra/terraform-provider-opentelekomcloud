@@ -126,6 +126,8 @@ func resourceVpcSubnetV1Create(d *schema.ResourceData, meta interface{}) error {
 	if err != nil {
 		return fmt.Errorf("Error creating OpenTelekomCloud VPC subnet: %s", err)
 	}
+
+	d.SetId(n.ID)
 	log.Printf("[INFO] Vpc Subnet ID: %s", n.ID)
 
 	stateConf := &resource.StateChangeConf{
@@ -137,8 +139,12 @@ func resourceVpcSubnetV1Create(d *schema.ResourceData, meta interface{}) error {
 		MinTimeout: 3 * time.Second,
 	}
 
-	_, err = stateConf.WaitForState()
-	d.SetId(n.ID)
+	_, stateErr := stateConf.WaitForState()
+	if stateErr != nil {
+		return fmt.Errorf(
+			"Error waiting for Subnet (%s) to become ACTIVE: %s",
+			n.ID, stateErr)
+	}
 
 	return resourceVpcSubnetV1Read(d, config)
 
@@ -247,12 +253,13 @@ func waitForVpcSubnetActive(subnetClient *golangsdk.ServiceClient, vpcId string)
 			return nil, "", err
 		}
 
-		if n.Status == "DOWN" || n.Status == "ACTIVE" || n.Status == "ERROR" {
+		if n.Status == "ACTIVE" {
 			return n, "ACTIVE", nil
 		}
 
-		if n.Status == "UNKNOWN" {
-			return nil, "", fmt.Errorf("The CIDR of the created subnet is the same as that of an existing subnet.")
+		//If subnet status is other than Active, send error
+		if n.Status == "DOWN" || n.Status == "ERROR" || n.Status == "UNKNOWN" {
+			return nil, "", fmt.Errorf("Subnet status: '%s'", n.Status)
 		}
 
 		return n, "CREATING", nil
