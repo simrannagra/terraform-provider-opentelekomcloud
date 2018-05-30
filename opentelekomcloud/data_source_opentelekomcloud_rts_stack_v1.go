@@ -2,13 +2,12 @@ package opentelekomcloud
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/huaweicloud/golangsdk/openstack/rts/v1/stacks"
 	"github.com/huaweicloud/golangsdk/openstack/rts/v1/stacktemplates"
-	"github.com/hashicorp/terraform/helper/schema"
 	"log"
 	"reflect"
 	"unsafe"
-
 )
 
 func dataSourceStackV1() *schema.Resource {
@@ -58,13 +57,13 @@ func dataSourceStackV1() *schema.Resource {
 				Type:     schema.TypeBool,
 				Computed: true,
 			},
-			"capabilities":  &schema.Schema{
+			"capabilities": &schema.Schema{
 				Type:     schema.TypeSet,
 				Computed: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 				Set:      schema.HashString,
 			},
-			"notification_topics":  &schema.Schema{
+			"notification_topics": &schema.Schema{
 				Type:     schema.TypeSet,
 				Computed: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
@@ -85,12 +84,12 @@ func dataSourceStackV1Read(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Error creating OpenTelekomCloud rts client: %s", err)
 	}
 	listOpts := stacks.ListOpts{
-		Status:        	d.Get("status").(string),
-		Name: 			d.Get("name").(string),
-		ID:				d.Get("id").(string),
+		Status: d.Get("status").(string),
+		Name:   d.Get("name").(string),
+		ID:     d.Get("id").(string),
 	}
 
-	refinedStacks, err :=stacks.List(orchestrationClient, listOpts)
+	refinedStacks, err := stacks.List(orchestrationClient, listOpts)
 	if err != nil {
 		return fmt.Errorf("Unable to retrieve stacks: %s", err)
 	}
@@ -121,12 +120,10 @@ func dataSourceStackV1Read(d *schema.ResourceData, meta interface{}) error {
 	d.Set("notification_topics", n.NotificationTopics)
 	d.Set("timeout_mins", n.Timeout)
 
-
 	TemplateList, err := stacktemplates.Get(orchestrationClient, stack.Name, stack.ID).Extract()
 	log.Printf("[DEBUG] Retrieved TemplateList %+v", TemplateList)
 	d.Set("outputs", flattenStackOutputs(n.Outputs))
 	d.Set("parameters", n.Parameters)
-
 
 	fmt.Print(string(TemplateList))
 	template := BytesToString(TemplateList)

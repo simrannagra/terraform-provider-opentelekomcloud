@@ -2,9 +2,9 @@ package opentelekomcloud
 
 import (
 	"fmt"
-	"log"
-	"github.com/huaweicloud/golangsdk/openstack/rts/v1/stackresources"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/huaweicloud/golangsdk/openstack/rts/v1/stackresources"
+	"log"
 )
 
 func dataSourceRtsStackResourcesV1() *schema.Resource {
@@ -50,7 +50,7 @@ func dataSourceRtsStackResourcesV1() *schema.Resource {
 					},
 				},
 			},
-			"required_by":&schema.Schema{
+			"required_by": &schema.Schema{
 				Type:     schema.TypeSet,
 				Computed: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
@@ -66,7 +66,7 @@ func dataSourceRtsStackResourcesV1() *schema.Resource {
 			},
 			"physical_resource_id": &schema.Schema{
 				Type:     schema.TypeString,
-				Optional:true,
+				Optional: true,
 			},
 			"resource_type": &schema.Schema{
 				Type:     schema.TypeString,
@@ -76,7 +76,7 @@ func dataSourceRtsStackResourcesV1() *schema.Resource {
 	}
 }
 
-func dataSourceRtsStackResourcesV1Read(d *schema.ResourceData,  meta interface{}) error {
+func dataSourceRtsStackResourcesV1Read(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*Config)
 	orchestrationClient, err := config.orchestrationV1Client(GetRegion(d, config))
 
@@ -88,13 +88,13 @@ func dataSourceRtsStackResourcesV1Read(d *schema.ResourceData,  meta interface{}
 		Type:       d.Get("resource_type").(string),
 	}
 
-	refinedResources ,err := stackresources.List(orchestrationClient,d.Get("stack_name").(string),d.Get("stack_id").(string),listOpts)
+	refinedResources, err := stackresources.List(orchestrationClient, d.Get("stack_name").(string), d.Get("stack_id").(string), listOpts)
 	log.Printf("[DEBUG] Value of allResources: %#v", refinedResources)
 	if err != nil {
 		return fmt.Errorf("Unable to retrieve Resources: %s", err)
 	}
 
-	if  refinedResources == nil ||len(refinedResources) == 0 {
+	if refinedResources == nil || len(refinedResources) == 0 {
 		return fmt.Errorf("No matching resource found. " +
 			"Please change your search criteria and try again.")
 	}
@@ -105,7 +105,7 @@ func dataSourceRtsStackResourcesV1Read(d *schema.ResourceData,  meta interface{}
 
 	resources := refinedResources[0]
 
-	log.Printf("[DEBUG] Retrieved Resources using given filter %s: %+v", resources.Name,resources)
+	log.Printf("[DEBUG] Retrieved Resources using given filter %s: %+v", resources.Name, resources)
 	d.SetId(resources.Name)
 
 	var s []map[string]interface{}
