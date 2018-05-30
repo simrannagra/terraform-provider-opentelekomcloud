@@ -14,9 +14,9 @@ type ListOptsBuilder interface {
 
 // ListOpts allows the filtering and sorting of paginated collections through
 // the API. Filtering is achieved by passing in struct field values that map to
-// the floating IP attributes you want to see returned.
+// the rts attributes you want to see returned.
 type ListOpts struct {
-	//Specifies the logical resource ID(i.e resource Name) of the resource.
+	//Specifies the logical resource ID of the resource.
 	LogicalID string `q:"logical_resource_id"`
 
 	//Name is the human readable name for the Resource.
@@ -25,7 +25,7 @@ type ListOpts struct {
 	//Specifies the Physical resource ID of the resource.
 	PhysicalID string `q:"physical_resource_id"`
 
-	//Status indicates whether or not a resource is currently operational.
+	//Status indicates whether or not a subnet is currently operational.
 	Status string `q:"resource_status"`
 
 	//Specifies the resource type that are defined in the template.

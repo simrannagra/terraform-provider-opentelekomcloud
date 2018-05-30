@@ -126,7 +126,7 @@ type ListOptsBuilder interface {
 
 // ListOpts allows the filtering and sorting of paginated collections through
 // the API. Filtering is achieved by passing in struct field values that map to
-// the network attributes you want to see returned. SortKey allows you to sort
+// the rts attributes you want to see returned. SortKey allows you to sort
 // by a particular network attribute. SortDir sets the direction, and is either
 // `asc' or `desc'. Marker and Limit are used for pagination.
 type ListOpts struct {
