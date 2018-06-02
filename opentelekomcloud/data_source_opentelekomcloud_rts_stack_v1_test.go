@@ -8,15 +8,15 @@ import (
 )
 
 // PASS
-func TestAccOpenTelekomCloudRtsStackV1DataSource_basic(t *testing.T) {
+func TestAccOTCRtsStackV1DataSource_basic(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			resource.TestStep{
-				Config: testAccOpenTelekomCloudRtsStackV1DataSource_basic,
+				Config: testAccOTCRtsStackV1DataSource_basic,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckRtsStackV1DataSourceID("data.opentelekomcloud_rts_stack_v1.stacks"),
+					testAccCheckOTCRtsStackV1DataSourceID("data.opentelekomcloud_rts_stack_v1.stacks"),
 					resource.TestCheckResourceAttr("data.opentelekomcloud_rts_stack_v1.stacks", "name", "opentelekomcloud_rts_stacktest"),
 					resource.TestCheckResourceAttr("data.opentelekomcloud_rts_stack_v1.stacks", "description", "A HOT template that create a single server and boot from volume."),
 					resource.TestCheckResourceAttr("data.opentelekomcloud_rts_stack_v1.stacks", "disable_rollback", "true"),
@@ -27,7 +27,7 @@ func TestAccOpenTelekomCloudRtsStackV1DataSource_basic(t *testing.T) {
 	})
 }
 
-func testAccCheckRtsStackV1DataSourceID(n string) resource.TestCheckFunc {
+func testAccCheckOTCRtsStackV1DataSourceID(n string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
@@ -42,7 +42,7 @@ func testAccCheckRtsStackV1DataSourceID(n string) resource.TestCheckFunc {
 	}
 }
 
-var testAccOpenTelekomCloudRtsStackV1DataSource_basic = `
+var testAccOTCRtsStackV1DataSource_basic = `
 resource "opentelekomcloud_rts_stack_v1" "stack_1" {
   name = "opentelekomcloud_rts_stacktest"
   disable_rollback= true

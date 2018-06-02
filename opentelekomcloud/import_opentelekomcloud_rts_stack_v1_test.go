@@ -8,7 +8,7 @@ import (
 
 // PASS
 func TestAccOTCRtsStackV1_importBasic(t *testing.T) {
-	resourceName := "opentelekomcloud_rts_stack_resource_v1.stack_1"
+	resourceName := "opentelekomcloud_rts_stack_v1.stack_1"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
