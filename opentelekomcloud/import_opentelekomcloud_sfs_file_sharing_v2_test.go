@@ -7,16 +7,16 @@ import (
 )
 
 // PASS
-func TestAccOTCSfsV2_importBasic(t *testing.T) {
+func TestAccOTCSfsFileSharingV2_importBasic(t *testing.T) {
 	resourceName := "opentelekomcloud_sfs_file_sharing_v2.sfs_1"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckOTCSfsV2Destroy,
+		CheckDestroy: testAccCheckOTCSfsFileSharingV2Destroy,
 		Steps: []resource.TestStep{
 			resource.TestStep{
-				Config: testAccSfsV2_basic,
+				Config: testAccSfsFileSharingV2_basic,
 			},
 
 			resource.TestStep{
