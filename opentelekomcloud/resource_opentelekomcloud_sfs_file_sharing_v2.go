@@ -58,10 +58,6 @@ func resourceSFSFileSharingV2() *schema.Resource {
 				Optional: true,
 				Computed: true,
 			},
-			"snapshot_id": &schema.Schema{
-				Type:     schema.TypeString,
-				Optional: true,
-			},
 			"is_public": &schema.Schema{
 				Type:     schema.TypeBool,
 				Optional: true,
@@ -69,15 +65,6 @@ func resourceSFSFileSharingV2() *schema.Resource {
 			},
 			"metadata": &schema.Schema{
 				Type:     schema.TypeMap,
-				Optional: true,
-				ForceNew: true,
-			},
-			"share_network_id": &schema.Schema{
-				Type:     schema.TypeString,
-				Optional: true,
-			},
-			"consistency_group_id": &schema.Schema{
-				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
 			},
@@ -141,11 +128,8 @@ func resourceSFSSharingV2Create(d *schema.ResourceData, meta interface{}) error 
 		Size:               d.Get("size").(int),
 		Name:               d.Get("name").(string),
 		Description:        d.Get("description").(string),
-		SnapshotID:         d.Get("snapshot_id").(string),
 		IsPublic:           d.Get("is_public").(bool),
 		Metadata:           resourceSFSMetadataV2(d),
-		ShareNetworkID:     d.Get("share_network_id").(string),
-		ConsistencyGroupID: d.Get("consistency_group_id").(string),
 		AvailabilityZone:   d.Get("availability_zone").(string),
 	}
 
@@ -219,11 +203,6 @@ func resourceSFSSharingV2Read(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Error retrieving OpenTelekomCloud Shares: %s", err)
 	}
 
-	//expLocs := n.ExportLocations
-	//ExpLocations := make([]string, len(expLocs))
-	//for i, val := range expLocs {
-	//	ExpLocations[i] = val
-	//}
 
 	d.Set("id", n.ID)
 	d.Set("name", n.Name)
@@ -233,10 +212,8 @@ func resourceSFSSharingV2Read(d *schema.ResourceData, meta interface{}) error {
 	d.Set("description", n.Description)
 	d.Set("share_type", n.ShareType)
 	d.Set("volume_type", n.VolumeType)
-	d.Set("snapshot_id", n.SnapshotID)
 	d.Set("is_public", n.IsPublic)
 	d.Set("metadata", n.Metadata)
-	d.Set("share_network_id", n.ShareNetworkID)
 	d.Set("availability_zone", n.AvailabilityZone)
 	d.Set("region", GetRegion(d, config))
 	d.Set("export_location", n.ExportLocation)
@@ -248,6 +225,9 @@ func resourceSFSSharingV2Read(d *schema.ResourceData, meta interface{}) error {
 		rule := rules[0]
 		d.Set("access_id", rule.ID)
 		d.Set("access_state", rule.State)
+		d.Set("access_to", rule.AccessTo)
+		d.Set("access_type", rule.AccessType)
+		d.Set("access_level", rule.AccessLevel)
 	}
 	return nil
 }

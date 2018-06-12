@@ -28,23 +28,11 @@ func dataSourceSFSFileSharingV2() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"share_network_id": &schema.Schema{
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"snapshot_id": &schema.Schema{
-				Type:     schema.TypeString,
-				Computed: true,
-			},
 			"size": &schema.Schema{
 				Type:     schema.TypeInt,
 				Computed: true,
 			},
 			"share_type": &schema.Schema{
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"consistency_group_id": &schema.Schema{
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -114,10 +102,6 @@ func dataSourceSFSFileSharingV2() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"access_key": &schema.Schema{
-				Type:     schema.TypeString,
-				Computed: true,
-			},
 			"mount_id": &schema.Schema{
 				Type:     schema.TypeString,
 				Computed: true,
@@ -171,11 +155,9 @@ func dataSourceSFSFileSharingV2Read(d *schema.ResourceData, meta interface{}) er
 	d.Set("is_public", share.IsPublic)
 	d.Set("name", share.Name)
 	d.Set("project_id", share.ProjectID)
-	d.Set("share_network_id", share.ShareNetworkID)
 	d.Set("share_proto", share.ShareProto)
 	d.Set("share_type", share.ShareType)
 	d.Set("size", share.Size)
-	d.Set("snapshot_id", share.SnapshotID)
 	d.Set("status", share.Status)
 	d.Set("volume_type", share.VolumeType)
 	d.Set("export_location", share.ExportLocation)
@@ -188,7 +170,6 @@ func dataSourceSFSFileSharingV2Read(d *schema.ResourceData, meta interface{}) er
 
 	d.Set("access_type", shareaccess.AccessType)
 	d.Set("access_to", shareaccess.AccessTo)
-	d.Set("access_key", shareaccess.AccessKey)
 	d.Set("access_level", shareaccess.AccessLevel)
 	d.Set("state", shareaccess.State)
 	d.Set("share_access_id", shareaccess.ID)
