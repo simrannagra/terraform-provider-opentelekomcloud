@@ -1,11 +1,11 @@
 package hosts
-
 import (
 	"reflect"
 
 	"github.com/huaweicloud/golangsdk"
 	"github.com/huaweicloud/golangsdk/pagination"
 )
+
 
 // AllocateOptsBuilder allows extensions to add additional parameters to the
 // Allocate request.
@@ -106,7 +106,6 @@ type ListOpts struct {
 type ListOptsBuilder interface {
 	ToHostListQuery() (string, error)
 }
-
 // Filters out hosts parameters
 func FilterHostParam(opts ListOpts) (filter ListOpts) {
 
@@ -197,9 +196,9 @@ func Get(c *golangsdk.ServiceClient, id string) (r GetResult) {
 }
 
 // ListServerOptsBuilder allows extensions to add parameters to the List request.
-type ListServerOptsBuilder interface {
+/*type ListServerOptsBuilder interface {
 	ToServerListQuery() (string, error)
-}
+}*/
 
 // ListServerOpts allows the filtering and sorting of paginated collections through
 // the API. Filtering is achieved by passing in struct field values that map to
@@ -211,25 +210,103 @@ type ListServerOpts struct {
 	// The value is the ID of the last record on the previous page.
 	// If the marker value is invalid, error code 400 will be returned.
 	Marker string `q:"marker"`
+	// ID uniquely identifies this server amongst all other servers,
+	// including those not accessible to the current tenant.
+	ID string `json:"id"`
+	// Name contains the human-readable name for the server.
+	Name string `json:"name"`
+	// Status contains the current operational status of the server,
+	// such as IN_PROGRESS or ACTIVE.
+	Status string `json:"status"`
+	// UserID uniquely identifies the user account owning the tenant.
+	UserID string `json:"user_id"`
+
 }
 
-// ToServerListQuery formats a ListServerOpts into a query string.
-func (opts ListServerOpts) ToServerListQuery() (string, error) {
-	q, err := golangsdk.BuildQueryString(opts)
-	return q.String(), err
-}
 
-// ListServer makes a request against the API to list servers accessible to you.
-func ListServer(client *golangsdk.ServiceClient, id string, opts ListServerOptsBuilder) pagination.Pager {
-	url := listServerURL(client, id)
-	if opts != nil {
-		query, err := opts.ToServerListQuery()
-		if err != nil {
-			return pagination.Pager{Err: err}
-		}
-		url += query
+func FilterServerParam(opts ListServerOpts) (filter ListServerOpts) {
+
+	if opts.ID != "" {
+		filter.ID = opts.ID
 	}
-	return pagination.NewPager(client, url, func(r pagination.PageResult) pagination.Page {
+	if opts.Name != "" {
+		filter.Name = opts.Name
+	}
+	if opts.Status != "" {
+		filter.Status = opts.Status
+	}
+	if opts.UserID != "" {
+		filter.UserID = opts.UserID
+	}
+
+	filter.Limit = opts.Limit
+	filter.Marker = opts.Marker
+
+	return filter
+}
+
+func ListServer(c *golangsdk.ServiceClient, id string, opts ListServerOpts) ([]Server, error) {
+	filter := FilterServerParam(opts)
+	q, err := golangsdk.BuildQueryString(&filter)
+	if err != nil {
+		return nil, err
+	}
+	u := listServerURL(c, id) + q.String()
+	pages, err := pagination.NewPager(c, u, func(r pagination.PageResult) pagination.Page {
 		return ServerPage{pagination.LinkedPageBase{PageResult: r}}
-	})
+	}).AllPages()
+
+	allhosts, err := ExtractServers(pages)
+	if err != nil {
+		return nil, err
+	}
+
+	return FilterVPCs(allhosts, opts)
+}
+
+func FilterVPCs(vpcs []Server, opts ListServerOpts) ([]Server, error) {
+
+	var refinedVPCs []Server
+	var matched bool
+	m := map[string]interface{}{}
+
+	if opts.ID != "" {
+		m["ID"] = opts.ID
+	}
+	if opts.Name != "" {
+		m["Name"] = opts.Name
+	}
+	if opts.Status != "" {
+		m["Status"] = opts.Status
+	}
+	if opts.UserID != "" {
+		m["UserID"] = opts.UserID
+	}
+
+	if len(m) > 0 && len(vpcs) > 0 {
+		for _, vpc := range vpcs {
+			matched = true
+
+			for key, value := range m {
+				if sVal := getStructFieldd(&vpc, key); !(sVal == value) {
+					matched = false
+				}
+			}
+
+			if matched {
+				refinedVPCs = append(refinedVPCs, vpc)
+			}
+		}
+
+	} else {
+		refinedVPCs = vpcs
+	}
+
+	return refinedVPCs, nil
+}
+
+func getStructFieldd(v *Server, field string) string {
+	r := reflect.ValueOf(v)
+	f := reflect.Indirect(r).FieldByName(field)
+	return string(f.String())
 }

@@ -6,6 +6,7 @@ import (
 	"time"
 )
 
+
 type Host struct {
 	// ID is the unique identifier for the dedicated host .
 	ID string `json:"dedicated_host_id"`
@@ -87,6 +88,8 @@ func (r HostPage) NextPageURL() (string, error) {
 	return golangsdk.ExtractNextURL(s.Links)
 }
 
+
+
 type commonResult struct {
 	golangsdk.Result
 }
@@ -118,7 +121,6 @@ type UpdateResult struct {
 type DeleteResult struct {
 	commonResult
 }
-
 // GetResult represents the result of a get operation. Call its Extract
 // method to interpret it as a host.
 type GetResult struct {
@@ -189,14 +191,14 @@ func (r ServerPage) NextPageURL() (string, error) {
 	return golangsdk.ExtractNextURL(s.Links)
 }
 
-func ExtractServersInto(r pagination.Page, v interface{}) error {
-	return r.(ServerPage).Result.ExtractIntoSlicePtr(v, "servers")
-}
 
-// ExtractServers interprets the results of a single page from a List() call,
-// producing a slice of Server entities.
+// ExtractServers accepts a Page struct, specifically a ServerPage struct,
+// and extracts the elements into a slice of Server structs. In other words,
+// a generic collection is mapped into a relevant slice.
 func ExtractServers(r pagination.Page) ([]Server, error) {
-	var s []Server
-	err := ExtractServersInto(r, &s)
-	return s, err
+	var s struct {
+		ListedStacks []Server `json:"servers"`
+	}
+	err := (r.(ServerPage)).ExtractInto(&s)
+	return s.ListedStacks, err
 }

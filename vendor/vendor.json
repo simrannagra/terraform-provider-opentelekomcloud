@@ -844,7 +844,7 @@
 			"revisionTime": "2018-03-15T11:09:47Z"
 		},
 		{
-			"checksumSHA1": "KM0p2XHwc2NYUKLMRjvJjdiQcQU=",
+			"checksumSHA1": "0vjyGogcvpS9dtSOmpzDg7lYmi0=",
 			"path": "github.com/huaweicloud/golangsdk/openstack/deh/v1/hosts",
 			"revision": "f1406232faef182a8b70cae5dd3f8153ab19cb7c",
 			"revisionTime": "2018-06-15T09:45:08Z"
@@ -1170,5 +1170,5 @@
 			"versionExact": "v1.6.1"
 		}
 	],
-	"rootPath": "github.com/terraform-providers/terraform-provider-opentelekomcloud"
+	"rootPath": "github.com/huaweicloud/terraform-provider-opentelekomcloud"
 }
