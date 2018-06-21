@@ -2,19 +2,19 @@ package opentelekomcloud
 
 import (
 	"fmt"
-	"testing"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"testing"
 )
 
 // PASS
-func TestAccOTCSfsFileSharingV2DataSource_basic(t *testing.T) {
+func TestAccOTCSFSFileSharingV2DataSource_basic(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			resource.TestStep{
-				Config: testAccOTCSfsV2DataSource_basic,
+				Config: testAccOTCSFSV2DataSource_basic,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckSFSFileSharingV2DataSourceID("data.opentelekomcloud_sfs_file_sharing_v2.shares"),
 					resource.TestCheckResourceAttr("data.opentelekomcloud_sfs_file_sharing_v2.shares", "name", "sfs-c2c-1"),
@@ -41,13 +41,13 @@ func testAccCheckSFSFileSharingV2DataSourceID(n string) resource.TestCheckFunc {
 	}
 }
 
-var testAccOTCSfsV2DataSource_basic = `
+var testAccOTCSFSV2DataSource_basic = `
 resource "opentelekomcloud_sfs_file_sharing_v2" "sfs_1" {
 	share_proto = "NFS"
 	size=1
 	name="sfs-c2c-1"
   	availability_zone="eu-de-01"
-	access_to="%s" 
+	access_to="%s"
   	access_type="cert"
   	access_level="rw"
 	description="sfs_c2c_test-file"
@@ -57,4 +57,3 @@ data "opentelekomcloud_sfs_file_sharing_v2" "shares" {
 }
 
 `
-

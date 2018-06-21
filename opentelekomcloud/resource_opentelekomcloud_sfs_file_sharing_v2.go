@@ -12,10 +12,10 @@ import (
 
 func resourceSFSFileSharingV2() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceSFSSharingV2Create,
-		Read:   resourceSFSSharingV2Read,
-		Update: resourceSFSSharingV2Update,
-		Delete: resourceSFSSharingV2Delete,
+		Create: resourceSFSFileSharingV2Create,
+		Read:   resourceSFSFileSharingV2Read,
+		Update: resourceSFSFileSharingV2Update,
+		Delete: resourceSFSFileSharingV2Delete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -35,7 +35,7 @@ func resourceSFSFileSharingV2() *schema.Resource {
 			"share_proto": &schema.Schema{
 				Type:     schema.TypeString,
 				Optional: true,
-				Default:"NFS",
+				Default:  "NFS",
 			},
 			"size": &schema.Schema{
 				Type:     schema.TypeInt,
@@ -43,7 +43,7 @@ func resourceSFSFileSharingV2() *schema.Resource {
 			},
 			"name": &schema.Schema{
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
 			},
 			"id": &schema.Schema{
 				Type:     schema.TypeString,
@@ -83,7 +83,7 @@ func resourceSFSFileSharingV2() *schema.Resource {
 				Optional: true,
 				Default:  "cert",
 			},
-			"access_to": &schema.Schema{
+			"vpc_id": &schema.Schema{
 				Type:     schema.TypeString,
 				Required: true,
 			},
@@ -113,27 +113,23 @@ func resourceSFSFileSharingV2() *schema.Resource {
 	}
 }
 
-func resourceSFSSharingV2Create(d *schema.ResourceData, meta interface{}) error {
+func resourceSFSFileSharingV2Create(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*Config)
 	sfsClient, err := config.sfsV2Client(GetRegion(d, config))
-
-	log.Printf("[DEBUG] Value of SFS Client: %#v", sfsClient)
 
 	if err != nil {
 		return fmt.Errorf("Error creating OpenTelekomCloud File Share Client: %s", err)
 	}
 
 	createOpts := shares.CreateOpts{
-		ShareProto:         d.Get("share_proto").(string),
-		Size:               d.Get("size").(int),
-		Name:               d.Get("name").(string),
-		Description:        d.Get("description").(string),
-		IsPublic:           d.Get("is_public").(bool),
-		Metadata:           resourceSFSMetadataV2(d),
-		AvailabilityZone:   d.Get("availability_zone").(string),
+		ShareProto:       d.Get("share_proto").(string),
+		Size:             d.Get("size").(int),
+		Name:             d.Get("name").(string),
+		Description:      d.Get("description").(string),
+		IsPublic:         d.Get("is_public").(bool),
+		Metadata:         resourceSFSMetadataV2(d),
+		AvailabilityZone: d.Get("availability_zone").(string),
 	}
-
-	log.Printf("[DEBUG] Create Options: %#v", createOpts)
 
 	create, err := shares.Create(sfsClient, createOpts).Extract()
 
@@ -141,27 +137,26 @@ func resourceSFSSharingV2Create(d *schema.ResourceData, meta interface{}) error 
 		return fmt.Errorf("Error creating OpenTelekomCloud File Share: %s", err)
 	}
 	d.SetId(create.ID)
-	log.Printf("[INFO] Share ID: %s", create.Name)
-
-	log.Printf("[DEBUG] Waiting for OpenTelekomCloud SFS File Share (%s) to become available", create.ID)
 
 	stateConf := &resource.StateChangeConf{
-		Pending:    []string{"Creating"},
-		Target:     []string{"Available"},
+		Pending:    []string{"creating"},
+		Target:     []string{"available"},
 		Refresh:    waitForSFSFileActive(sfsClient, create.ID),
 		Timeout:    d.Timeout(schema.TimeoutCreate),
 		Delay:      5 * time.Second,
 		MinTimeout: 3 * time.Second,
 	}
-	_, err = stateConf.WaitForState()
+	_, StateErr := stateConf.WaitForState()
+	if StateErr != nil {
+		return fmt.Errorf("Error applying access rules to share file : %s", StateErr)
+	}
 
 	grantAccessOpts := shares.GrantAccessOpts{
 		AccessLevel: d.Get("access_level").(string),
 		AccessType:  d.Get("access_type").(string),
-		AccessTo:    d.Get("access_to").(string),
+		AccessTo:    d.Get("vpc_id").(string),
 	}
 
-	log.Printf("[DEBUG] Grant Access Rules: %#v", grantAccessOpts)
 	grant, accessErr := shares.GrantAccess(sfsClient, d.Id(), grantAccessOpts).Extract()
 
 	if accessErr != nil {
@@ -170,11 +165,11 @@ func resourceSFSSharingV2Create(d *schema.ResourceData, meta interface{}) error 
 
 	log.Printf("[DEBUG] Waiting for OpenTelekomCloud SFS File Share (%s) to become available", grant.ID)
 
-	return resourceSFSSharingV2Read(d, meta)
+	return resourceSFSFileSharingV2Read(d, meta)
 
 }
 
-func resourceSFSSharingV2Read(d *schema.ResourceData, meta interface{}) error {
+func resourceSFSFileSharingV2Read(d *schema.ResourceData, meta interface{}) error {
 
 	config := meta.(*Config)
 	sfsClient, err := config.sfsV2Client(GetRegion(d, config))
@@ -203,7 +198,6 @@ func resourceSFSSharingV2Read(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Error retrieving OpenTelekomCloud Shares: %s", err)
 	}
 
-
 	d.Set("id", n.ID)
 	d.Set("name", n.Name)
 	d.Set("share_proto", n.ShareProto)
@@ -225,14 +219,14 @@ func resourceSFSSharingV2Read(d *schema.ResourceData, meta interface{}) error {
 		rule := rules[0]
 		d.Set("access_id", rule.ID)
 		d.Set("access_state", rule.State)
-		d.Set("access_to", rule.AccessTo)
+		d.Set("vpc_id", rule.AccessTo)
 		d.Set("access_type", rule.AccessType)
 		d.Set("access_level", rule.AccessLevel)
 	}
 	return nil
 }
 
-func resourceSFSSharingV2Update(d *schema.ResourceData, meta interface{}) error {
+func resourceSFSFileSharingV2Update(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*Config)
 	sfsClient, err := config.sfsV2Client(GetRegion(d, config))
 	if err != nil {
@@ -245,7 +239,7 @@ func resourceSFSSharingV2Update(d *schema.ResourceData, meta interface{}) error 
 	if d.HasChange("description") {
 		updateOpts.DisplayDescription = d.Get("description").(string)
 	}
-	if d.HasChange("access_to") {
+	if d.HasChange("vpc_id") {
 		deleteAccessOpts := shares.DeleteAccessOpts{AccessID: d.Get("access_id").(string)}
 		deny := shares.DeleteAccess(sfsClient, d.Id(), deleteAccessOpts)
 		if deny.Err != nil {
@@ -255,7 +249,7 @@ func resourceSFSSharingV2Update(d *schema.ResourceData, meta interface{}) error 
 		grantAccessOpts := shares.GrantAccessOpts{
 			AccessLevel: d.Get("access_level").(string),
 			AccessType:  d.Get("access_type").(string),
-			AccessTo:    d.Get("access_to").(string),
+			AccessTo:    d.Get("vpc_id").(string),
 		}
 
 		log.Printf("[DEBUG] Grant Access Rules: %#v", grantAccessOpts)
@@ -287,10 +281,10 @@ func resourceSFSSharingV2Update(d *schema.ResourceData, meta interface{}) error 
 	if err != nil {
 		return fmt.Errorf("Error updating OpenTelekomCloud Share File: %s", err)
 	}
-	return resourceSFSSharingV2Read(d, meta)
+	return resourceSFSFileSharingV2Read(d, meta)
 }
 
-func resourceSFSSharingV2Delete(d *schema.ResourceData, meta interface{}) error {
+func resourceSFSFileSharingV2Delete(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*Config)
 	sfsClient, err := config.sfsV2Client(GetRegion(d, config))
 	if err != nil {
@@ -299,8 +293,8 @@ func resourceSFSSharingV2Delete(d *schema.ResourceData, meta interface{}) error 
 	share_id := d.Get("id").(string)
 
 	stateConf := &resource.StateChangeConf{
-		Pending:    []string{"ACTIVE"},
-		Target:     []string{"DELETED"},
+		Pending:    []string{"available"},
+		Target:     []string{"deleted"},
 		Refresh:    waitForSFSFileDelete(sfsClient, share_id),
 		Timeout:    d.Timeout(schema.TimeoutDelete),
 		Delay:      5 * time.Second,
@@ -323,14 +317,9 @@ func waitForSFSFileActive(sfsClient *golangsdk.ServiceClient, shareID string) re
 			return nil, "", err
 		}
 
-		if n.Status == "OK" {
+		if n.Status == "error" {
 			return n, "ACTIVE", nil
 		}
-
-		if n.Status == "DOWN" {
-			return nil, "", fmt.Errorf("Share File status: '%s'", n.Status)
-		}
-
 		return n, n.Status, nil
 	}
 }
@@ -343,26 +332,26 @@ func waitForSFSFileDelete(sfsClient *golangsdk.ServiceClient, shareId string) re
 		if err != nil {
 			if _, ok := err.(golangsdk.ErrDefault404); ok {
 				log.Printf("[INFO] Successfully deleted OpenTelekomCloud shared File %s", shareId)
-				return r, "DELETED", nil
+				return r, "deleted", nil
 			}
-			return r, "ACTIVE", err
+			return r, "available", err
 		}
 		err = shares.Delete(sfsClient, shareId).ExtractErr()
 
 		if err != nil {
 			if _, ok := err.(golangsdk.ErrDefault404); ok {
 				log.Printf("[INFO] Successfully deleted OpenTelekomCloud shared File %s", shareId)
-				return r, "DELETED", nil
+				return r, "deleted", nil
 			}
 			if errCode, ok := err.(golangsdk.ErrUnexpectedResponseCode); ok {
 				if errCode.Actual == 409 {
-					return r, "ACTIVE", nil
+					return r, "available", nil
 				}
 			}
-			return r, "ACTIVE", err
+			return r, "available", err
 		}
 
-		return r, "ACTIVE", nil
+		return r, r.Status, nil
 	}
 }
 

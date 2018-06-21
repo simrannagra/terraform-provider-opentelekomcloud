@@ -10,18 +10,18 @@ import (
 )
 
 // PASS
-func TestAccOTCSfsFileSharingV2_basic(t *testing.T) {
+func TestAccOTCSFSFileSharingV2_basic(t *testing.T) {
 	var share shares.Share
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckOTCSfsFileSharingV2Destroy,
+		CheckDestroy: testAccCheckOTCSFSFileSharingV2Destroy,
 		Steps: []resource.TestStep{
 			resource.TestStep{
-				Config: testAccSfsFileSharingV2_basic,
+				Config: testAccSFSFileSharingV2_basic,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckOTCSfsFileSharingV2Exists("opentelekomcloud_sfs_file_sharing_v2.sfs_1", &share),
+					testAccCheckOTCSFSFileSharingV2Exists("opentelekomcloud_sfs_file_sharing_v2.sfs_1", &share),
 					resource.TestCheckResourceAttr(
 						"opentelekomcloud_sfs_file_sharing_v2.sfs_1", "name", "sfs-test1"),
 					resource.TestCheckResourceAttr(
@@ -33,7 +33,7 @@ func TestAccOTCSfsFileSharingV2_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"opentelekomcloud_sfs_file_sharing_v2.sfs_1", "access_level", "rw"),
 					resource.TestCheckResourceAttr(
-						"opentelekomcloud_sfs_file_sharing_v2.sfs_1", "access_to", OS_VPC_ID),
+						"opentelekomcloud_sfs_file_sharing_v2.sfs_1", "vpc_id", OS_VPC_ID),
 					resource.TestCheckResourceAttr(
 						"opentelekomcloud_sfs_file_sharing_v2.sfs_1", "access_type", "cert"),
 				),
@@ -42,18 +42,18 @@ func TestAccOTCSfsFileSharingV2_basic(t *testing.T) {
 	})
 }
 
-func TestAccOTCSfsFileSharingV2_update(t *testing.T) {
+func TestAccOTCSFSFileSharingV2_update(t *testing.T) {
 	var share shares.Share
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckOTCSfsFileSharingV2Destroy,
+		CheckDestroy: testAccCheckOTCSFSFileSharingV2Destroy,
 		Steps: []resource.TestStep{
 			resource.TestStep{
-				Config: testAccSfsFileSharingV2_basic,
+				Config: testAccSFSFileSharingV2_basic,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckOTCSfsFileSharingV2Exists("opentelekomcloud_sfs_file_sharing_v2.sfs_1", &share),
+					testAccCheckOTCSFSFileSharingV2Exists("opentelekomcloud_sfs_file_sharing_v2.sfs_1", &share),
 					resource.TestCheckResourceAttr(
 						"opentelekomcloud_sfs_file_sharing_v2.sfs_1", "name", "sfs-test1"),
 					resource.TestCheckResourceAttr(
@@ -65,15 +65,15 @@ func TestAccOTCSfsFileSharingV2_update(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"opentelekomcloud_sfs_file_sharing_v2.sfs_1", "access_level", "rw"),
 					resource.TestCheckResourceAttr(
-						"opentelekomcloud_sfs_file_sharing_v2.sfs_1", "access_to", OS_VPC_ID),
+						"opentelekomcloud_sfs_file_sharing_v2.sfs_1", "vpc_id", OS_VPC_ID),
 					resource.TestCheckResourceAttr(
 						"opentelekomcloud_sfs_file_sharing_v2.sfs_1", "access_type", "cert"),
 				),
 			},
 			resource.TestStep{
-				Config: testAccSfsFileSharingV2_update,
+				Config: testAccSFSFileSharingV2_update,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckOTCSfsFileSharingV2Exists("opentelekomcloud_sfs_file_sharing_v2.sfs_1", &share),
+					testAccCheckOTCSFSFileSharingV2Exists("opentelekomcloud_sfs_file_sharing_v2.sfs_1", &share),
 					resource.TestCheckResourceAttr(
 						"opentelekomcloud_sfs_file_sharing_v2.sfs_1", "name", "sfs-test2"),
 					resource.TestCheckResourceAttr(
@@ -85,7 +85,7 @@ func TestAccOTCSfsFileSharingV2_update(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"opentelekomcloud_sfs_file_sharing_v2.sfs_1", "access_level", "rw"),
 					resource.TestCheckResourceAttr(
-						"opentelekomcloud_sfs_file_sharing_v2.sfs_1", "access_to", OS_VPC_ID),
+						"opentelekomcloud_sfs_file_sharing_v2.sfs_1", "vpc_id", OS_VPC_ID),
 					resource.TestCheckResourceAttr(
 						"opentelekomcloud_sfs_file_sharing_v2.sfs_1", "access_type", "cert"),
 				),
@@ -95,25 +95,25 @@ func TestAccOTCSfsFileSharingV2_update(t *testing.T) {
 }
 
 // PASS
-func TestAccOTCSfsFileSharingV2_timeout(t *testing.T) {
+func TestAccOTCSFSFileSharingV2_timeout(t *testing.T) {
 	var share shares.Share
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckOTCSfsFileSharingV2Destroy,
+		CheckDestroy: testAccCheckOTCSFSFileSharingV2Destroy,
 		Steps: []resource.TestStep{
 			resource.TestStep{
-				Config: testAccSfsFileSharingV2_timeout,
+				Config: testAccSFSFileSharingV2_timeout,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckOTCSfsFileSharingV2Exists("opentelekomcloud_sfs_file_sharing_v2.sfs_1", &share),
+					testAccCheckOTCSFSFileSharingV2Exists("opentelekomcloud_sfs_file_sharing_v2.sfs_1", &share),
 				),
 			},
 		},
 	})
 }
 
-func testAccCheckOTCSfsFileSharingV2Destroy(s *terraform.State) error {
+func testAccCheckOTCSFSFileSharingV2Destroy(s *terraform.State) error {
 	config := testAccProvider.Meta().(*Config)
 	sfsClient, err := config.sfsV2Client(OS_REGION_NAME)
 	if err != nil {
@@ -134,7 +134,7 @@ func testAccCheckOTCSfsFileSharingV2Destroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccCheckOTCSfsFileSharingV2Exists(n string, share *shares.Share) resource.TestCheckFunc {
+func testAccCheckOTCSFSFileSharingV2Exists(n string, share *shares.Share) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
@@ -166,39 +166,39 @@ func testAccCheckOTCSfsFileSharingV2Exists(n string, share *shares.Share) resour
 	}
 }
 
-var testAccSfsFileSharingV2_basic = fmt.Sprintf(`
+var testAccSFSFileSharingV2_basic = fmt.Sprintf(`
 resource "opentelekomcloud_sfs_file_sharing_v2" "sfs_1" {
 	share_proto = "NFS"
 	size=1
 	name="sfs-test1"
   	availability_zone="eu-de-01"
-	access_to="%s" 
+	vpc_id="%s"
   	access_type="cert"
   	access_level="rw"
 	description="sfs_c2c_test-file"
 }
-`,OS_VPC_ID)
+`, OS_VPC_ID)
 
-var testAccSfsFileSharingV2_update  = fmt.Sprintf(`
+var testAccSFSFileSharingV2_update = fmt.Sprintf(`
 resource "opentelekomcloud_sfs_file_sharing_v2" "sfs_1" {
 	share_proto = "NFS"
 	size=2
 	name="sfs-test2"
   	availability_zone="eu-de-01"
-	access_to="%s" 
+	vpc_id="%s"
   	access_type="cert"
   	access_level="rw"
 	description="sfs_c2c_test-file"
 }
-`,OS_VPC_ID)
+`, OS_VPC_ID)
 
-var testAccSfsFileSharingV2_timeout = fmt.Sprintf(`
+var testAccSFSFileSharingV2_timeout = fmt.Sprintf(`
 resource "opentelekomcloud_sfs_file_sharing_v2" "sfs_1" {
 	share_proto = "NFS"
 	size=1
 	name="sfs-test1"
   	availability_zone="eu-de-01"
-	access_to="%s" 
+	vpc_id="%s"
   	access_type="cert"
   	access_level="rw"
 	description="sfs_c2c_test-file"
@@ -207,4 +207,4 @@ resource "opentelekomcloud_sfs_file_sharing_v2" "sfs_1" {
     create = "5m"
     delete = "5m"
   }
-}`,OS_VPC_ID)
+}`, OS_VPC_ID)
