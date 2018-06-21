@@ -98,7 +98,7 @@ func dataSourceSFSFileSharingV2() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"vpc_id": &schema.Schema{
+			"access_to": &schema.Schema{
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -169,7 +169,7 @@ func dataSourceSFSFileSharingV2Read(d *schema.ResourceData, meta interface{}) er
 	shareaccess := n[0]
 
 	d.Set("access_type", shareaccess.AccessType)
-	d.Set("vpc_id", shareaccess.AccessTo)
+	d.Set("access_to", shareaccess.AccessTo)
 	d.Set("access_level", shareaccess.AccessLevel)
 	d.Set("state", shareaccess.State)
 	d.Set("share_access_id", shareaccess.ID)

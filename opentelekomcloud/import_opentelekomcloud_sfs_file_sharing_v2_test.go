@@ -13,10 +13,10 @@ func TestAccOTCSfsFileSharingV2_importBasic(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckOTCSFSFileSharingV2Destroy,
+		CheckDestroy: testAccCheckOTCSfsFileSharingV2Destroy,
 		Steps: []resource.TestStep{
 			resource.TestStep{
-				Config: testAccSFSFileSharingV2_basic,
+				Config: testAccSfsFileSharingV2_basic,
 			},
 
 			resource.TestStep{
