@@ -163,8 +163,8 @@ func Provider() terraform.ResourceProvider {
 			"opentelekomcloud_kms_key_v1":             dataSourceKmsKeyV1(),
 			"opentelekomcloud_kms_data_key_v1":        dataSourceKmsDataKeyV1(),
 			"opentelekomcloud_rds_flavors_v1":         dataSourceRdsFlavorV1(),
-			"opentelekomcloud_deh_v1":                 dataSourceDEHV1(),
-			"opentelekomcloud_deh_server_v1":          dataSourceDEHServersV1(),
+			"opentelekomcloud_deh_host_v1":				   dataSourceDEHHostV1(),
+			"opentelekomcloud_deh_server_v1":		   dataSourceDEHServersV1(),
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
@@ -209,7 +209,7 @@ func Provider() terraform.ResourceProvider {
 			"opentelekomcloud_smn_subscription_v2":             resourceSubscription(),
 			"opentelekomcloud_rds_instance_v1":                 resourceRdsInstance(),
 			"opentelekomcloud_vpc_eip_v1":                      resourceVpcEIPV1(),
-			"opentelekomcloud_deh_host_v1":                     resourceDeHHostV1(),
+			"opentelekomcloud_deh_v1":                          resourceDeHV1(),
 		},
 
 		ConfigureFunc: configureProvider,

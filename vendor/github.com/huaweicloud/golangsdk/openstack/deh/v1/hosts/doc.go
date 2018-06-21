@@ -26,4 +26,28 @@ Example to delete Hosts
 		panic(delete.Err)
 	}
 	fmt.Println(delete)
+
+Example to List Hosts
+	listdeh := hosts.ListOpts{}
+	alldehs, err := hosts.List(client,listdeh)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(alldehs)
+
+Example to Get Host
+	result := hosts.Get(client, "66156a61-27c2-4169-936b-910dd9c73da3")
+	out, err := result.Extract()
+	fmt.Println(out)
+
+Example to List Servers
+	listOpts := hosts.ListServerOpts{}
+	allServers, err := hosts.ListServer(client, "671611d2-b45c-4648-9e78-06eb24522291",listOpts)
+	if err != nil {
+	panic(err)
+	}
+
+	for _, server := range allServers {
+	fmt.Printf("%+v\n", server)
+	}
 */

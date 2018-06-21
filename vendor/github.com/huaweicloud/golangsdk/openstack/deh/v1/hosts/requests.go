@@ -195,10 +195,6 @@ func Get(c *golangsdk.ServiceClient, id string) (r GetResult) {
 	return
 }
 
-// ListServerOptsBuilder allows extensions to add parameters to the List request.
-/*type ListServerOptsBuilder interface {
-	ToServerListQuery() (string, error)
-}*/
 
 // ListServerOpts allows the filtering and sorting of paginated collections through
 // the API. Filtering is achieved by passing in struct field values that map to
@@ -245,6 +241,9 @@ func FilterServerParam(opts ListServerOpts) (filter ListServerOpts) {
 	return filter
 }
 
+// ListServer returns a Pager which allows you to iterate over a collection of
+// dedicated hosts Server resources. It accepts a ListServerOpts struct, which allows you to
+// filter the returned collection for greater efficiency.
 func ListServer(c *golangsdk.ServiceClient, id string, opts ListServerOpts) ([]Server, error) {
 	filter := FilterServerParam(opts)
 	q, err := golangsdk.BuildQueryString(&filter)
@@ -256,17 +255,17 @@ func ListServer(c *golangsdk.ServiceClient, id string, opts ListServerOpts) ([]S
 		return ServerPage{pagination.LinkedPageBase{PageResult: r}}
 	}).AllPages()
 
-	allhosts, err := ExtractServers(pages)
+	allservers, err := ExtractServers(pages)
 	if err != nil {
 		return nil, err
 	}
 
-	return FilterVPCs(allhosts, opts)
+	return FilterServers(allservers, opts)
 }
 
-func FilterVPCs(vpcs []Server, opts ListServerOpts) ([]Server, error) {
+func FilterServers(servers []Server, opts ListServerOpts) ([]Server, error) {
 
-	var refinedVPCs []Server
+	var refinedServers []Server
 	var matched bool
 	m := map[string]interface{}{}
 
@@ -283,29 +282,29 @@ func FilterVPCs(vpcs []Server, opts ListServerOpts) ([]Server, error) {
 		m["UserID"] = opts.UserID
 	}
 
-	if len(m) > 0 && len(vpcs) > 0 {
-		for _, vpc := range vpcs {
+	if len(m) > 0 && len(servers) > 0 {
+		for _, server := range servers {
 			matched = true
 
 			for key, value := range m {
-				if sVal := getStructFieldd(&vpc, key); !(sVal == value) {
+				if sVal := getStructServerField(&server, key); !(sVal == value) {
 					matched = false
 				}
 			}
 
 			if matched {
-				refinedVPCs = append(refinedVPCs, vpc)
+				refinedServers = append(refinedServers, server)
 			}
 		}
 
 	} else {
-		refinedVPCs = vpcs
+		refinedServers = servers
 	}
 
-	return refinedVPCs, nil
+	return refinedServers, nil
 }
 
-func getStructFieldd(v *Server, field string) string {
+func getStructServerField(v *Server, field string) string {
 	r := reflect.ValueOf(v)
 	f := reflect.Indirect(r).FieldByName(field)
 	return string(f.String())

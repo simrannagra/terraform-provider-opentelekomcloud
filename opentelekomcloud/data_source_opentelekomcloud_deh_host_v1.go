@@ -9,9 +9,9 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
-func dataSourceDEHV1() *schema.Resource {
+func dataSourceDEHHostV1() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceDEHV1Read,
+		Read: dataSourceDEHHostV1Read,
 
 		Schema: map[string]*schema.Schema{
 			"region": &schema.Schema{
@@ -88,7 +88,7 @@ func dataSourceDEHV1() *schema.Resource {
 	}
 }
 
-func dataSourceDEHV1Read(d *schema.ResourceData, meta interface{}) error {
+func dataSourceDEHHostV1Read(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*Config)
 	dehClient, err := config.dehV1Client(GetRegion(d, config))
 

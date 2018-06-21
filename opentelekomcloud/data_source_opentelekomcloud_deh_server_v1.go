@@ -60,6 +60,28 @@ func dataSourceDEHServersV1() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"addresses": &schema.Schema{
+				Type:     schema.TypeList,
+				Optional: true,
+				ForceNew: true,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": &schema.Schema{
+							Type:     schema.TypeString,
+							Optional: true,
+							ForceNew: true,
+							Computed: true,
+						},
+						"fixed_ip_v4": &schema.Schema{
+							Type:     schema.TypeString,
+							Optional: true,
+							ForceNew: true,
+							Computed: true,
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -101,8 +123,16 @@ func dataSourceDEHServersV1Read(d *schema.ResourceData, meta interface{}) error 
 	d.Set("server_name", DehServer.Name)
 	d.Set("status", DehServer.Status)
 	d.Set("server_flavor", DehServer.Flavor)
+	d.Set("addresses", DehServer.Addresses)
 	d.Set("metadata", DehServer.Metadata)
 	d.Set("region", GetRegion(d, config))
+	networks, err := flattenInstanceNetwork(d, meta)
+	if err != nil {
+		return err
+	}
+	if err := d.Set("addresses", networks); err != nil {
+		return fmt.Errorf("[DEBUG] Error saving network to state for OpenTelekomCloud server (%s): %s", d.Id(), err)
+	}
 
 	return nil
 
