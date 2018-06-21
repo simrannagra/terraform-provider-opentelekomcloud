@@ -177,9 +177,9 @@ resource "opentelekomcloud_sfs_file_sharing_v2" "sfs_1" {
   	access_level="rw"
 	description="sfs_c2c_test-file"
 }
-`,OS_VPC_ID)
+`, OS_VPC_ID)
 
-var testAccSFSFileSharingV2_update  = fmt.Sprintf(`
+var testAccSFSFileSharingV2_update = fmt.Sprintf(`
 resource "opentelekomcloud_sfs_file_sharing_v2" "sfs_1" {
 	share_proto = "NFS"
 	size=2
@@ -190,7 +190,7 @@ resource "opentelekomcloud_sfs_file_sharing_v2" "sfs_1" {
   	access_level="rw"
 	description="sfs_c2c_test-file"
 }
-`,OS_VPC_ID)
+`, OS_VPC_ID)
 
 var testAccSFSFileSharingV2_timeout = fmt.Sprintf(`
 resource "opentelekomcloud_sfs_file_sharing_v2" "sfs_1" {
@@ -207,4 +207,4 @@ resource "opentelekomcloud_sfs_file_sharing_v2" "sfs_1" {
     create = "5m"
     delete = "5m"
   }
-}`,OS_VPC_ID)
+}`, OS_VPC_ID)
