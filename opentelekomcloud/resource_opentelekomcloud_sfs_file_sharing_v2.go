@@ -12,10 +12,10 @@ import (
 
 func resourceSFSFileSharingV2() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceSFSFileSharingV2Create,
-		Read:   resourceSFSFileSharingV2Read,
-		Update: resourceSFSFileSharingV2Update,
-		Delete: resourceSFSFileSharingV2Delete,
+		Create: resourceSFSSharingV2Create,
+		Read:   resourceSFSSharingV2Read,
+		Update: resourceSFSSharingV2Update,
+		Delete: resourceSFSSharingV2Delete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -35,7 +35,7 @@ func resourceSFSFileSharingV2() *schema.Resource {
 			"share_proto": &schema.Schema{
 				Type:     schema.TypeString,
 				Optional: true,
-				Default:  "NFS",
+				Default:"NFS",
 			},
 			"size": &schema.Schema{
 				Type:     schema.TypeInt,
@@ -112,7 +112,7 @@ func resourceSFSFileSharingV2() *schema.Resource {
 	}
 }
 
-func resourceSFSFileSharingV2Create(d *schema.ResourceData, meta interface{}) error {
+func resourceSFSSharingV2Create(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*Config)
 	sfsClient, err := config.sfsV2Client(GetRegion(d, config))
 
@@ -121,14 +121,15 @@ func resourceSFSFileSharingV2Create(d *schema.ResourceData, meta interface{}) er
 	}
 
 	createOpts := shares.CreateOpts{
-		ShareProto:       d.Get("share_proto").(string),
-		Size:             d.Get("size").(int),
-		Name:             d.Get("name").(string),
-		Description:      d.Get("description").(string),
-		IsPublic:         d.Get("is_public").(bool),
-		Metadata:         resourceSFSMetadataV2(d),
-		AvailabilityZone: d.Get("availability_zone").(string),
+		ShareProto:         d.Get("share_proto").(string),
+		Size:               d.Get("size").(int),
+		Name:               d.Get("name").(string),
+		Description:        d.Get("description").(string),
+		IsPublic:           d.Get("is_public").(bool),
+		Metadata:           resourceSFSMetadataV2(d),
+		AvailabilityZone:   d.Get("availability_zone").(string),
 	}
+
 
 	create, err := shares.Create(sfsClient, createOpts).Extract()
 
@@ -140,7 +141,7 @@ func resourceSFSFileSharingV2Create(d *schema.ResourceData, meta interface{}) er
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{"creating"},
 		Target:     []string{"available"},
-		Refresh:    waitForSFSFileSharingActive(sfsClient, create.ID),
+		Refresh:    waitForSFSFileActive(sfsClient, create.ID),
 		Timeout:    d.Timeout(schema.TimeoutCreate),
 		Delay:      5 * time.Second,
 		MinTimeout: 3 * time.Second,
@@ -165,11 +166,11 @@ func resourceSFSFileSharingV2Create(d *schema.ResourceData, meta interface{}) er
 
 	log.Printf("[INFO] Waiting for OpenTelekomCloud SFS File Share (%s) to become available", grant.ID)
 
-	return resourceSFSFileSharingV2Read(d, meta)
+	return resourceSFSSharingV2Read(d, meta)
 
 }
 
-func resourceSFSFileSharingV2Read(d *schema.ResourceData, meta interface{}) error {
+func resourceSFSSharingV2Read(d *schema.ResourceData, meta interface{}) error {
 
 	config := meta.(*Config)
 	sfsClient, err := config.sfsV2Client(GetRegion(d, config))
@@ -186,6 +187,8 @@ func resourceSFSFileSharingV2Read(d *schema.ResourceData, meta interface{}) erro
 
 		return fmt.Errorf("Error retrieving OpenTelekomCloud Shares: %s", err)
 	}
+
+
 
 	d.Set("id", n.ID)
 	d.Set("name", n.Name)
@@ -224,7 +227,7 @@ func resourceSFSFileSharingV2Read(d *schema.ResourceData, meta interface{}) erro
 	return nil
 }
 
-func resourceSFSFileSharingV2Update(d *schema.ResourceData, meta interface{}) error {
+func resourceSFSSharingV2Update(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*Config)
 	sfsClient, err := config.sfsV2Client(GetRegion(d, config))
 	if err != nil {
@@ -274,10 +277,10 @@ func resourceSFSFileSharingV2Update(d *schema.ResourceData, meta interface{}) er
 	if err != nil {
 		return fmt.Errorf("Error updating OpenTelekomCloud Share File: %s", err)
 	}
-	return resourceSFSFileSharingV2Read(d, meta)
+	return resourceSFSSharingV2Read(d, meta)
 }
 
-func resourceSFSFileSharingV2Delete(d *schema.ResourceData, meta interface{}) error {
+func resourceSFSSharingV2Delete(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*Config)
 	sfsClient, err := config.sfsV2Client(GetRegion(d, config))
 	if err != nil {
@@ -286,9 +289,9 @@ func resourceSFSFileSharingV2Delete(d *schema.ResourceData, meta interface{}) er
 	share_id := d.Get("id").(string)
 
 	stateConf := &resource.StateChangeConf{
-		Pending:    []string{"available", "deleting"},
+		Pending:    []string{"available","deleting"},
 		Target:     []string{"deleted"},
-		Refresh:    waitForSFSFileSharingDelete(sfsClient, share_id),
+		Refresh:    waitForSFSFileDelete(sfsClient, share_id),
 		Timeout:    d.Timeout(schema.TimeoutDelete),
 		Delay:      5 * time.Second,
 		MinTimeout: 3 * time.Second,
@@ -303,7 +306,7 @@ func resourceSFSFileSharingV2Delete(d *schema.ResourceData, meta interface{}) er
 	return nil
 }
 
-func waitForSFSFileSharingActive(sfsClient *golangsdk.ServiceClient, shareID string) resource.StateRefreshFunc {
+func waitForSFSFileActive(sfsClient *golangsdk.ServiceClient, shareID string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		n, err := shares.Get(sfsClient, shareID).Extract()
 		if err != nil {
@@ -317,7 +320,7 @@ func waitForSFSFileSharingActive(sfsClient *golangsdk.ServiceClient, shareID str
 	}
 }
 
-func waitForSFSFileSharingDelete(sfsClient *golangsdk.ServiceClient, shareId string) resource.StateRefreshFunc {
+func waitForSFSFileDelete(sfsClient *golangsdk.ServiceClient, shareId string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 
 		r, err := shares.Get(sfsClient, shareId).Extract()
@@ -342,7 +345,7 @@ func waitForSFSFileSharingDelete(sfsClient *golangsdk.ServiceClient, shareId str
 			return r, "available", err
 		}
 
-		return r, r.Status, nil
+		return r,r.Status, nil
 	}
 }
 

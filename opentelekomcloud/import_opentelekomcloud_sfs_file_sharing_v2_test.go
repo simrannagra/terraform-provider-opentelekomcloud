@@ -7,7 +7,7 @@ import (
 )
 
 // PASS
-func TestAccOTCSFSFileSharingV2_importBasic(t *testing.T) {
+func TestAccOTCSfsFileSharingV2_importBasic(t *testing.T) {
 	resourceName := "opentelekomcloud_sfs_file_sharing_v2.sfs_1"
 
 	resource.Test(t, resource.TestCase{
