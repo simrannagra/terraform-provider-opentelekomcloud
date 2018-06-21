@@ -20,13 +20,13 @@ func TestAccOTCDedicatedHostV1_basic(t *testing.T) {
 			resource.TestStep{
 				Config: testAccDeHV1_basic,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckOTCDeHV1Exists("opentelekomcloud_deh_v1.deh1", &host),
+					testAccCheckOTCDeHV1Exists("opentelekomcloud_deh_host_v1.deh1", &host),
 					resource.TestCheckResourceAttr(
-						"opentelekomcloud_deh_v1.deh1", "name", "test-deh-1"),
+						"opentelekomcloud_deh_host_v1.deh1", "name", "test-deh-1"),
 					resource.TestCheckResourceAttr(
-						"opentelekomcloud_deh_v1.deh1", "auto_placement", "off"),
+						"opentelekomcloud_deh_host_v1.deh1", "auto_placement", "off"),
 					resource.TestCheckResourceAttr(
-						"opentelekomcloud_deh_v1.deh1", "host_type", "h1"),
+						"opentelekomcloud_deh_host_v1.deh1", "host_type", "h1"),
 				),
 			},
 		},
@@ -43,29 +43,25 @@ func TestAccOTCDedicatedHostV1_update(t *testing.T) {
 			resource.TestStep{
 				Config: testAccDeHV1_basic,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckOTCDeHV1Exists("opentelekomcloud_deh_v1.deh1", &host),
+					testAccCheckOTCDeHV1Exists("opentelekomcloud_deh_host_v1.deh1", &host),
 					resource.TestCheckResourceAttr(
-						"opentelekomcloud_deh_v1.deh1", "name", "test-deh-1"),
+						"opentelekomcloud_deh_host_v1.deh1", "name", "test-deh-1"),
 					resource.TestCheckResourceAttr(
-						"opentelekomcloud_deh_v1.deh1", "auto_placement", "off"),
+						"opentelekomcloud_deh_host_v1.deh1", "auto_placement", "off"),
 					resource.TestCheckResourceAttr(
-						"opentelekomcloud_deh_v1.deh1", "host_type", "h1"),
-					resource.TestCheckResourceAttr(
-						"opentelekomcloud_deh_v1.deh1", "quantity", "1"),
+						"opentelekomcloud_deh_host_v1.deh1", "host_type", "h1"),
 				),
 			},
 			resource.TestStep{
 				Config: testAccDeHV1_update,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckOTCDeHV1Exists("opentelekomcloud_deh_v1.deh1", &host),
+					testAccCheckOTCDeHV1Exists("opentelekomcloud_deh_host_v1.deh1", &host),
 					resource.TestCheckResourceAttr(
-						"opentelekomcloud_deh_v1.deh1", "name", "test-deh-2"),
+						"opentelekomcloud_deh_host_v1.deh1", "name", "test-deh-2"),
 					resource.TestCheckResourceAttr(
-						"opentelekomcloud_deh_v1.deh1", "auto_placement", "on"),
+						"opentelekomcloud_deh_host_v1.deh1", "auto_placement", "on"),
 					resource.TestCheckResourceAttr(
-						"opentelekomcloud_deh_v1.deh1", "host_type", "h1"),
-					resource.TestCheckResourceAttr(
-						"opentelekomcloud_deh_v1.deh1", "quantity", "1"),
+						"opentelekomcloud_deh_host_v1.deh1", "host_type", "h1"),
 				),
 			},
 		},
@@ -83,7 +79,7 @@ func TestAccOTCDedicatedHostV1_timeout(t *testing.T) {
 			resource.TestStep{
 				Config: testAccDeHV1_timeout,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckOTCDeHV1Exists("opentelekomcloud_deh_v1.deh1", &host),
+					testAccCheckOTCDeHV1Exists("opentelekomcloud_deh_host_v1.deh1", &host),
 				),
 			},
 		},
@@ -98,7 +94,7 @@ func testAccCheckOTCDeHV1Destroy(s *terraform.State) error {
 	}
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "opentelekomcloud_deh_v1" {
+		if rs.Type != "opentelekomcloud_deh_host_v1" {
 			continue
 		}
 
@@ -144,31 +140,28 @@ func testAccCheckOTCDeHV1Exists(n string, host *hosts.Host) resource.TestCheckFu
 }
 
 var testAccDeHV1_basic = fmt.Sprintf(`
-resource "opentelekomcloud_deh_v1" "deh1" {
+resource "opentelekomcloud_deh_host_v1" "deh1" {
 	 availability_zone= "%s"     
      auto_placement= "off"
-     host_type= "h1"	
-     quantity= 1	
+     host_type= "h1"   
 	name = "test-deh-1"
 }
 `, OS_AVAILABILITY_ZONE)
 
 var testAccDeHV1_update = fmt.Sprintf(`
-resource "opentelekomcloud_deh_v1" "deh1" {
+resource "opentelekomcloud_deh_host_v1" "deh1" {
 	 availability_zone= "%s"     
      auto_placement= "on"
-     host_type= "h1"	
-     quantity= 1	
+     host_type= "h1"
 	name = "test-deh-2"
 }
 `, OS_AVAILABILITY_ZONE)
 
 var testAccDeHV1_timeout = fmt.Sprintf(`
-resource "opentelekomcloud_deh_v1" "deh1" {
+resource "opentelekomcloud_deh_host_v1" "deh1" {
 	 availability_zone= "%s"     
      auto_placement= "off"
-     host_type= "h1"	
-     quantity= 1	
+     host_type= "h1"
 	name = "test-deh-1"
   timeouts {
     create = "5m"

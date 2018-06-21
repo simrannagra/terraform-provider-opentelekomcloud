@@ -6,7 +6,7 @@ import (
 )
 
 func TestAccOTCDedicatedHostV1_importBasic(t *testing.T) {
-	resourceName := "opentelekomcloud_deh_v1.deh1"
+	resourceName := "opentelekomcloud_deh_host_v1.deh1"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
