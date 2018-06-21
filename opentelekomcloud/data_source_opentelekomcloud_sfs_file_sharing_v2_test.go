@@ -47,7 +47,7 @@ resource "opentelekomcloud_sfs_file_sharing_v2" "sfs_1" {
 	size=1
 	name="sfs-c2c-1"
   	availability_zone="eu-de-01"
-	access_to="%s"
+	vpc_id="%s"
   	access_type="cert"
   	access_level="rw"
 	description="sfs_c2c_test-file"

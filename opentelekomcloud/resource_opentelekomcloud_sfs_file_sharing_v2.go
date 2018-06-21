@@ -318,7 +318,7 @@ func waitForSFSFileActive(sfsClient *golangsdk.ServiceClient, shareID string) re
 		}
 
 		if n.Status == "error" {
-			return n, "ACTIVE", nil
+			return n,n.Status, nil
 		}
 		return n, n.Status, nil
 	}
