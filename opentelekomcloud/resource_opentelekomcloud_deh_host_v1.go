@@ -75,12 +75,6 @@ func resourceDeHHostV1() *schema.Resource {
 				Optional: true,
 				Computed: true,
 			},
-
-			"released_at": &schema.Schema{
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
-			},
 			"instance_total": &schema.Schema{
 				Type:     schema.TypeString,
 				Optional: true,
@@ -209,7 +203,6 @@ func resourceDeHHostV1Read(d *schema.ResourceData, meta interface{}) error {
 	d.Set("available_vcpus", n.AvailableVcpus)
 	d.Set("available_memory", n.AvailableMemory)
 	d.Set("allocated_at", n.AllocatedAt)
-	d.Set("released_at", n.ReleasedAt)
 	d.Set("instance_total", n.InstanceTotal)
 	d.Set("instance_uuids", n.InstanceUuids)
 	d.Set("host_type", n.HostProperties.HostType)
