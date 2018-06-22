@@ -16,9 +16,9 @@ func TestAccOTCDedicatedHostV1DataSource_basic(t *testing.T) {
 			resource.TestStep{
 				Config: testAccOTCDedicatedHostV1DataSource_basic,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDedicatedHostV1DataSourceID("data.opentelekomcloud_deh_v1.hosts"),
-					resource.TestCheckResourceAttr("data.opentelekomcloud_deh_v1.hosts", "name", "c2c-test"),
-					resource.TestCheckResourceAttr("data.opentelekomcloud_deh_v1.hosts", "availability_zone", "eu-de-01"),
+					testAccCheckDedicatedHostV1DataSourceID("data.opentelekomcloud_deh_host_v1.hosts"),
+					resource.TestCheckResourceAttr("data.opentelekomcloud_deh_host_v1.hosts", "name", "test-deh-1"),
+					resource.TestCheckResourceAttr("data.opentelekomcloud_deh_host_v1.hosts", "auto_placement", "off"),
 				),
 			},
 		},
@@ -40,8 +40,16 @@ func testAccCheckDedicatedHostV1DataSourceID(n string) resource.TestCheckFunc {
 	}
 }
 
-var testAccOTCDedicatedHostV1DataSource_basic = `
-data "opentelekomcloud_deh_v1" "hosts" {
-  id = "95baaeb7-d933-440e-ad43-62b59b723aee"
+
+
+var testAccOTCDedicatedHostV1DataSource_basic = fmt.Sprintf(`
+resource "opentelekomcloud_deh_host_v1" "deh1" {
+	 availability_zone= "%s"     
+     auto_placement= "on"
+     host_type= "h1"
+	name = "test-deh-1"
 }
-`
+data "opentelekomcloud_deh_host_v1" "hosts" {
+  id = "${opentelekomcloud_deh_host_v1.deh1.id}"
+}
+`, OS_AVAILABILITY_ZONE)
