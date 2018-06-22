@@ -48,14 +48,6 @@ func dataSourceDEHServersV1() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"limit": &schema.Schema{
-				Type:     schema.TypeInt,
-				Computed: true,
-			},
-			"marker": &schema.Schema{
-				Type:     schema.TypeString,
-				Computed: true,
-			},
 			"tenant_id": &schema.Schema{
 				Type:     schema.TypeString,
 				Computed: true,
@@ -91,8 +83,6 @@ func dataSourceDEHServersV1Read(d *schema.ResourceData, meta interface{}) error 
 	dehClient, err := config.dehV1Client(GetRegion(d, config))
 
 	listServerOpts := hosts.ListServerOpts{
-		Limit:  d.Get("limit").(int),
-		Marker: d.Get("marker").(string),
 		ID:     d.Get("server_id").(string),
 		Name:   d.Get("server_name").(string),
 		Status: d.Get("status").(string),

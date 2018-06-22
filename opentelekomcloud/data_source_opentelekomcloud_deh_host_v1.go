@@ -48,14 +48,6 @@ func dataSourceDEHHostV1() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			"limit": &schema.Schema{
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"marker": &schema.Schema{
-				Type:     schema.TypeString,
-				Computed: true,
-			},
 			"tenant_id": &schema.Schema{
 				Type:     schema.TypeString,
 				Computed: true,
