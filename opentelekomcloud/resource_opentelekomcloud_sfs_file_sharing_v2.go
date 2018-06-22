@@ -45,10 +45,6 @@ func resourceSFSFileSharingV2() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			"id": &schema.Schema{
-				Type:     schema.TypeString,
-				Computed: true,
-			},
 			"status": &schema.Schema{
 				Type:     schema.TypeString,
 				Computed: true,
@@ -70,7 +66,7 @@ func resourceSFSFileSharingV2() *schema.Resource {
 			},
 			"availability_zone": &schema.Schema{
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
 				ForceNew: true,
 			},
 			"access_level": &schema.Schema{
@@ -87,7 +83,7 @@ func resourceSFSFileSharingV2() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"access_id": &schema.Schema{
+			"share_access_id": &schema.Schema{
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -187,17 +183,6 @@ func resourceSFSFileSharingV2Read(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("Error retrieving OpenTelekomCloud Shares: %s", err)
 	}
 
-	rules, err := shares.ListAccessRights(sfsClient, d.Id()).ExtractAccessRights()
-
-	if err != nil {
-		if _, ok := err.(golangsdk.ErrDefault404); ok {
-			d.SetId("")
-			return nil
-		}
-
-		return fmt.Errorf("Error retrieving OpenTelekomCloud Shares: %s", err)
-	}
-
 	d.Set("id", n.ID)
 	d.Set("name", n.Name)
 	d.Set("share_proto", n.ShareProto)
@@ -215,9 +200,20 @@ func resourceSFSFileSharingV2Read(d *schema.ResourceData, meta interface{}) erro
 	d.Set("host", n.Host)
 	d.Set("links", n.Links)
 
+	rules, err := shares.ListAccessRights(sfsClient, d.Id()).ExtractAccessRights()
+
+	if err != nil {
+		if _, ok := err.(golangsdk.ErrDefault404); ok {
+			d.SetId("")
+			return nil
+		}
+
+		return fmt.Errorf("Error retrieving OpenTelekomCloud Shares: %s", err)
+	}
+
 	if len(rules) > 0 {
 		rule := rules[0]
-		d.Set("access_id", rule.ID)
+		d.Set("share_access_id", rule.ID)
 		d.Set("access_state", rule.State)
 		d.Set("vpc_id", rule.AccessTo)
 		d.Set("access_type", rule.AccessType)
@@ -240,7 +236,7 @@ func resourceSFSFileSharingV2Update(d *schema.ResourceData, meta interface{}) er
 		updateOpts.DisplayDescription = d.Get("description").(string)
 	}
 	if d.HasChange("vpc_id") {
-		deleteAccessOpts := shares.DeleteAccessOpts{AccessID: d.Get("access_id").(string)}
+		deleteAccessOpts := shares.DeleteAccessOpts{AccessID: d.Get("share_access_id").(string)}
 		deny := shares.DeleteAccess(sfsClient, d.Id(), deleteAccessOpts)
 		if deny.Err != nil {
 			return fmt.Errorf("Error changing access rules for share file : %s", deny.Err)
@@ -261,15 +257,15 @@ func resourceSFSFileSharingV2Update(d *schema.ResourceData, meta interface{}) er
 	}
 
 	if d.HasChange("size") {
-		old, new := d.GetChange("size")
-		if old.(int) < new.(int) {
-			expandOpts := shares.ExpandOpts{OSExtend: shares.OSExtendOpts{NewSize: new.(int)}}
+		old, newsize := d.GetChange("size")
+		if old.(int) < newsize.(int) {
+			expandOpts := shares.ExpandOpts{OSExtend: shares.OSExtendOpts{NewSize: newsize.(int)}}
 			expand := shares.Expand(sfsClient, d.Id(), expandOpts)
 			if expand.Err != nil {
 				return fmt.Errorf("Error Expanding OpenTelekomCloud Share File size: %s", expand.Err)
 			}
 		} else {
-			shrinkOpts := shares.ShrinkOpts{OSShrink: shares.OSShrinkOpts{NewSize: new.(int)}}
+			shrinkOpts := shares.ShrinkOpts{OSShrink: shares.OSShrinkOpts{NewSize: newsize.(int)}}
 			shrink := shares.Shrink(sfsClient, d.Id(), shrinkOpts)
 			if shrink.Err != nil {
 				return fmt.Errorf("Error Shrinking OpenTelekomCloud Share File size: %s", shrink.Err)
