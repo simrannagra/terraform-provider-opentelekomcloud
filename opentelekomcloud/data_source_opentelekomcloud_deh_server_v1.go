@@ -2,11 +2,9 @@ package opentelekomcloud
 
 import (
 	"fmt"
-	"log"
-
-	"github.com/huaweicloud/golangsdk/openstack/deh/v1/hosts"
-
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/huaweicloud/golangsdk/openstack/deh/v1/hosts"
+	"log"
 )
 
 func dataSourceDEHServersV1() *schema.Resource {
@@ -20,7 +18,7 @@ func dataSourceDEHServersV1() *schema.Resource {
 				Computed: true,
 				ForceNew: true,
 			},
-			"id": &schema.Schema{
+			"dedicated_host_id": &schema.Schema{
 				Type:     schema.TypeString,
 				Optional: true,
 			},
@@ -32,11 +30,11 @@ func dataSourceDEHServersV1() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"server_name": &schema.Schema{
+			"name": &schema.Schema{
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"server_flavor": &schema.Schema{
+			"flavor": &schema.Schema{
 				Type:     schema.TypeMap,
 				Computed: true,
 			},
@@ -84,11 +82,11 @@ func dataSourceDEHServersV1Read(d *schema.ResourceData, meta interface{}) error 
 
 	listServerOpts := hosts.ListServerOpts{
 		ID:     d.Get("server_id").(string),
-		Name:   d.Get("server_name").(string),
+		Name:   d.Get("name").(string),
 		Status: d.Get("status").(string),
 		UserID: d.Get("user_id").(string),
 	}
-	pages, err := hosts.ListServer(dehClient, d.Get("id").(string), listServerOpts)
+	pages, err := hosts.ListServer(dehClient, d.Get("dedicated_host_id").(string), listServerOpts)
 
 	if err != nil {
 		return fmt.Errorf("Unable to retrieve deh server: %s", err)
@@ -105,14 +103,14 @@ func dataSourceDEHServersV1Read(d *schema.ResourceData, meta interface{}) error 
 
 	DehServer := pages[0]
 
-	log.Printf("[INFO] Retrieved Deh using given filter %s: %+v", DehServer.ID, DehServer)
+	log.Printf("[INFO] Retrieved Deh Server using given filter %s: %+v", DehServer.ID, DehServer)
 	d.SetId(DehServer.ID)
 
 	d.Set("server_id", DehServer.ID)
 	d.Set("user_id", DehServer.UserID)
-	d.Set("server_name", DehServer.Name)
+	d.Set("name", DehServer.Name)
 	d.Set("status", DehServer.Status)
-	d.Set("server_flavor", DehServer.Flavor)
+	d.Set("flavor", DehServer.Flavor)
 	d.Set("addresses", DehServer.Addresses)
 	d.Set("metadata", DehServer.Metadata)
 	d.Set("region", GetRegion(d, config))

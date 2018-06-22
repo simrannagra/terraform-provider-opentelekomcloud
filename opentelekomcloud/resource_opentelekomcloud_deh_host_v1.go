@@ -105,8 +105,8 @@ func resourceDeHHostV1() *schema.Resource {
 			},
 			"available_instance_capacities": &schema.Schema{
 				Type:     schema.TypeList,
-				Computed: true,
 				Optional: true,
+				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"flavor": &schema.Schema{
@@ -176,7 +176,6 @@ func resourceDeHHostV1Read(d *schema.ResourceData, meta interface{}) error {
 
 		return fmt.Errorf("Error retrieving OpenTelekomCloud Dedicated Host: %s", err)
 	}
-
 
 	d.Set("id", n.ID)
 	d.Set("name", n.Name)

@@ -7,7 +7,6 @@ import (
 	"testing"
 )
 
-// PASS
 func TestAccOTCDedicatedHostV1DataSource_basic(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
@@ -39,8 +38,6 @@ func testAccCheckDedicatedHostV1DataSourceID(n string) resource.TestCheckFunc {
 		return nil
 	}
 }
-
-
 
 var testAccOTCDedicatedHostV1DataSource_basic = fmt.Sprintf(`
 resource "opentelekomcloud_deh_host_v1" "deh1" {

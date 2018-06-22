@@ -2,17 +2,14 @@ package opentelekomcloud
 
 import (
 	"fmt"
-	"log"
-
-	"github.com/huaweicloud/golangsdk/openstack/deh/v1/hosts"
-
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/huaweicloud/golangsdk/openstack/deh/v1/hosts"
+	"log"
 )
 
 func dataSourceDEHHostV1() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceDEHHostV1Read,
-
 		Schema: map[string]*schema.Schema{
 			"region": &schema.Schema{
 				Type:     schema.TypeString,
@@ -36,11 +33,19 @@ func dataSourceDEHHostV1() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"flavor": &schema.Schema{
-				Type:     schema.TypeString,
+			"available_instance_capacities": &schema.Schema{
+				Type:     schema.TypeList,
 				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"flavor": &schema.Schema{
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
 			},
-			"state": &schema.Schema{
+			"status": &schema.Schema{
 				Type:     schema.TypeString,
 				Optional: true,
 			},
@@ -76,6 +81,21 @@ func dataSourceDEHHostV1() *schema.Resource {
 				Type:     schema.TypeInt,
 				Computed: true,
 			},
+			"instance_uuids": &schema.Schema{
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+			"vcpus": &schema.Schema{
+				Type:     schema.TypeInt,
+				Computed: true,
+			},
+			"memory": &schema.Schema{
+				Type:     schema.TypeInt,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -87,7 +107,7 @@ func dataSourceDEHHostV1Read(d *schema.ResourceData, meta interface{}) error {
 	listOpts := hosts.ListOpts{
 		ID:    d.Get("id").(string),
 		Name:  d.Get("name").(string),
-		State: d.Get("state").(string),
+		State: d.Get("status").(string),
 		Az:    d.Get("availability_zone").(string),
 	}
 
@@ -116,17 +136,18 @@ func dataSourceDEHHostV1Read(d *schema.ResourceData, meta interface{}) error {
 	d.Set("auto_placement", Deh.AutoPlacement)
 	d.Set("availability_zone", Deh.Az)
 	d.Set("tenant_id", Deh.TenantId)
-	d.Set("state", Deh.State)
+	d.Set("status", Deh.State)
 	d.Set("available_vcpus", Deh.AvailableVcpus)
 	d.Set("available_memory", Deh.AvailableMemory)
 	d.Set("instance_total", Deh.InstanceTotal)
-	//d.Set("instance_uuids", Deh.InstanceUuids[0])
 	d.Set("host_type_name", Deh.HostProperties.HostTypeName)
 	d.Set("host_type", Deh.HostProperties.HostType)
 	d.Set("cores", Deh.HostProperties.Cores)
 	d.Set("sockets", Deh.HostProperties.Sockets)
-	d.Set("flavor", Deh.HostProperties.AvailableInstanceCapacities[0].Flavor)
+	d.Set("vcpus", Deh.HostProperties.Vcpus)
+	d.Set("memory", Deh.HostProperties.Memory)
+	d.Set("available_instance_capacities", getInstanceProperties(&Deh))
+	d.Set("instance_uuids", Deh.InstanceUuids)
 	d.Set("region", GetRegion(d, config))
-
 	return nil
 }
