@@ -50,7 +50,7 @@ func resourceDeHHostV1() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 			},
-			"state": &schema.Schema{
+			"status": &schema.Schema{
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
@@ -179,7 +179,7 @@ func resourceDeHHostV1Read(d *schema.ResourceData, meta interface{}) error {
 
 	d.Set("id", n.ID)
 	d.Set("name", n.Name)
-	d.Set("state", n.State)
+	d.Set("status", n.State)
 	d.Set("dedicated_host_id", n.ID)
 	d.Set("auto_placement", n.AutoPlacement)
 	d.Set("availability_zone", n.Az)
