@@ -9,9 +9,9 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
-func dataSourceSFSFileSharingV2() *schema.Resource {
+func dataSourceSFSFileSystemV2() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceSFSFileSharingV2Read,
+		Read: dataSourceSFSFileSystemV2Read,
 
 		Schema: map[string]*schema.Schema{
 			"region": &schema.Schema{
@@ -118,7 +118,7 @@ func dataSourceSFSFileSharingV2() *schema.Resource {
 	}
 }
 
-func dataSourceSFSFileSharingV2Read(d *schema.ResourceData, meta interface{}) error {
+func dataSourceSFSFileSystemV2Read(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*Config)
 	sfsClient, err := config.sfsV2Client(GetRegion(d, config))
 

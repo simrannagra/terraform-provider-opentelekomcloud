@@ -10,12 +10,12 @@ import (
 	"time"
 )
 
-func resourceSFSFileSharingV2() *schema.Resource {
+func resourceSFSFileSystemV2() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceSFSFileSharingV2Create,
-		Read:   resourceSFSFileSharingV2Read,
-		Update: resourceSFSFileSharingV2Update,
-		Delete: resourceSFSFileSharingV2Delete,
+		Create: resourceSFSFileSystemV2Create,
+		Read:   resourceSFSFileSystemV2Read,
+		Update: resourceSFSFileSystemV2Update,
+		Delete: resourceSFSFileSystemV2Delete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -102,7 +102,7 @@ func resourceSFSFileSharingV2() *schema.Resource {
 	}
 }
 
-func resourceSFSFileSharingV2Create(d *schema.ResourceData, meta interface{}) error {
+func resourceSFSFileSystemV2Create(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*Config)
 	sfsClient, err := config.sfsV2Client(GetRegion(d, config))
 
@@ -154,11 +154,11 @@ func resourceSFSFileSharingV2Create(d *schema.ResourceData, meta interface{}) er
 
 	log.Printf("[DEBUG] Waiting for OpenTelekomCloud SFS File Share (%s) to become available", grant.ID)
 
-	return resourceSFSFileSharingV2Read(d, meta)
+	return resourceSFSFileSystemV2Read(d, meta)
 
 }
 
-func resourceSFSFileSharingV2Read(d *schema.ResourceData, meta interface{}) error {
+func resourceSFSFileSystemV2Read(d *schema.ResourceData, meta interface{}) error {
 
 	config := meta.(*Config)
 	sfsClient, err := config.sfsV2Client(GetRegion(d, config))
@@ -214,7 +214,7 @@ func resourceSFSFileSharingV2Read(d *schema.ResourceData, meta interface{}) erro
 	return nil
 }
 
-func resourceSFSFileSharingV2Update(d *schema.ResourceData, meta interface{}) error {
+func resourceSFSFileSystemV2Update(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*Config)
 	sfsClient, err := config.sfsV2Client(GetRegion(d, config))
 	if err != nil {
@@ -269,10 +269,10 @@ func resourceSFSFileSharingV2Update(d *schema.ResourceData, meta interface{}) er
 		}
 	}
 
-	return resourceSFSFileSharingV2Read(d, meta)
+	return resourceSFSFileSystemV2Read(d, meta)
 }
 
-func resourceSFSFileSharingV2Delete(d *schema.ResourceData, meta interface{}) error {
+func resourceSFSFileSystemV2Delete(d *schema.ResourceData, meta interface{}) error {
 	config := meta.(*Config)
 	sfsClient, err := config.sfsV2Client(GetRegion(d, config))
 	if err != nil {
