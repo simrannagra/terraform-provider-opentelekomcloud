@@ -5,7 +5,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/huaweicloud/golangsdk"
-	"github.com/huaweicloud/golangsdk/openstack/sharedfilesystems/v2/shares"
+	"github.com/huaweicloud/golangsdk/openstack/sfs/v2/shares"
 	"log"
 	"time"
 )
@@ -72,14 +72,13 @@ func resourceSFSFileSharingV2() *schema.Resource {
 			"access_level": &schema.Schema{
 				Type:     schema.TypeString,
 				Required: true,
-				ForceNew: true,
 			},
 			"access_type": &schema.Schema{
 				Type:     schema.TypeString,
 				Optional: true,
 				Default:  "cert",
 			},
-			"vpc_id": &schema.Schema{
+			"access_to": &schema.Schema{
 				Type:     schema.TypeString,
 				Required: true,
 			},
@@ -87,7 +86,7 @@ func resourceSFSFileSharingV2() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"access_state": &schema.Schema{
+			"access_rule_status": &schema.Schema{
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -97,12 +96,6 @@ func resourceSFSFileSharingV2() *schema.Resource {
 			},
 			"export_location": &schema.Schema{
 				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"export_locations": &schema.Schema{
-				Type:     schema.TypeSet,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-				Set:      schema.HashString,
 				Computed: true,
 			},
 		},
@@ -150,7 +143,7 @@ func resourceSFSFileSharingV2Create(d *schema.ResourceData, meta interface{}) er
 	grantAccessOpts := shares.GrantAccessOpts{
 		AccessLevel: d.Get("access_level").(string),
 		AccessType:  d.Get("access_type").(string),
-		AccessTo:    d.Get("vpc_id").(string),
+		AccessTo:    d.Get("access_to").(string),
 	}
 
 	grant, accessErr := shares.GrantAccess(sfsClient, d.Id(), grantAccessOpts).Extract()
@@ -196,7 +189,6 @@ func resourceSFSFileSharingV2Read(d *schema.ResourceData, meta interface{}) erro
 	d.Set("availability_zone", n.AvailabilityZone)
 	d.Set("region", GetRegion(d, config))
 	d.Set("export_location", n.ExportLocation)
-	d.Set("export_locations", n.ExportLocations)
 	d.Set("host", n.Host)
 	d.Set("links", n.Links)
 
@@ -214,8 +206,8 @@ func resourceSFSFileSharingV2Read(d *schema.ResourceData, meta interface{}) erro
 	if len(rules) > 0 {
 		rule := rules[0]
 		d.Set("share_access_id", rule.ID)
-		d.Set("access_state", rule.State)
-		d.Set("vpc_id", rule.AccessTo)
+		d.Set("access_rule_status", rule.State)
+		d.Set("access_to", rule.AccessTo)
 		d.Set("access_type", rule.AccessType)
 		d.Set("access_level", rule.AccessLevel)
 	}
@@ -230,12 +222,16 @@ func resourceSFSFileSharingV2Update(d *schema.ResourceData, meta interface{}) er
 	}
 	var updateOpts shares.UpdateOpts
 
-	updateOpts.DisplayName = d.Get("name").(string)
-
-	if d.HasChange("description") {
+	if d.HasChange("description") || d.HasChange("name") {
+		updateOpts.DisplayName = d.Get("name").(string)
 		updateOpts.DisplayDescription = d.Get("description").(string)
+
+		_, err = shares.Update(sfsClient, d.Id(), updateOpts).Extract()
+		if err != nil {
+			return fmt.Errorf("Error updating OpenTelekomCloud Share File: %s", err)
+		}
 	}
-	if d.HasChange("vpc_id") {
+	if d.HasChange("access_to") || d.HasChange("access_level") || d.HasChange("access_type"){
 		deleteAccessOpts := shares.DeleteAccessOpts{AccessID: d.Get("share_access_id").(string)}
 		deny := shares.DeleteAccess(sfsClient, d.Id(), deleteAccessOpts)
 		if deny.Err != nil {
@@ -245,7 +241,7 @@ func resourceSFSFileSharingV2Update(d *schema.ResourceData, meta interface{}) er
 		grantAccessOpts := shares.GrantAccessOpts{
 			AccessLevel: d.Get("access_level").(string),
 			AccessType:  d.Get("access_type").(string),
-			AccessTo:    d.Get("vpc_id").(string),
+			AccessTo:    d.Get("access_to").(string),
 		}
 
 		log.Printf("[DEBUG] Grant Access Rules: %#v", grantAccessOpts)
@@ -273,10 +269,6 @@ func resourceSFSFileSharingV2Update(d *schema.ResourceData, meta interface{}) er
 		}
 	}
 
-	_, err = shares.Update(sfsClient, d.Id(), updateOpts).Extract()
-	if err != nil {
-		return fmt.Errorf("Error updating OpenTelekomCloud Share File: %s", err)
-	}
 	return resourceSFSFileSharingV2Read(d, meta)
 }
 

@@ -6,7 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
-	"github.com/huaweicloud/golangsdk/openstack/sharedfilesystems/v2/shares"
+	"github.com/huaweicloud/golangsdk/openstack/sfs/v2/shares"
 )
 
 // PASS
@@ -33,7 +33,7 @@ func TestAccOTCSFSFileSharingV2_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"opentelekomcloud_sfs_file_sharing_v2.sfs_1", "access_level", "rw"),
 					resource.TestCheckResourceAttr(
-						"opentelekomcloud_sfs_file_sharing_v2.sfs_1", "vpc_id", OS_VPC_ID),
+						"opentelekomcloud_sfs_file_sharing_v2.sfs_1", "access_to", OS_VPC_ID),
 					resource.TestCheckResourceAttr(
 						"opentelekomcloud_sfs_file_sharing_v2.sfs_1", "access_type", "cert"),
 				),
@@ -65,7 +65,7 @@ func TestAccOTCSFSFileSharingV2_update(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"opentelekomcloud_sfs_file_sharing_v2.sfs_1", "access_level", "rw"),
 					resource.TestCheckResourceAttr(
-						"opentelekomcloud_sfs_file_sharing_v2.sfs_1", "vpc_id", OS_VPC_ID),
+						"opentelekomcloud_sfs_file_sharing_v2.sfs_1", "access_to", OS_VPC_ID),
 					resource.TestCheckResourceAttr(
 						"opentelekomcloud_sfs_file_sharing_v2.sfs_1", "access_type", "cert"),
 				),
@@ -85,7 +85,7 @@ func TestAccOTCSFSFileSharingV2_update(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"opentelekomcloud_sfs_file_sharing_v2.sfs_1", "access_level", "rw"),
 					resource.TestCheckResourceAttr(
-						"opentelekomcloud_sfs_file_sharing_v2.sfs_1", "vpc_id", OS_VPC_ID),
+						"opentelekomcloud_sfs_file_sharing_v2.sfs_1", "access_to", OS_VPC_ID),
 					resource.TestCheckResourceAttr(
 						"opentelekomcloud_sfs_file_sharing_v2.sfs_1", "access_type", "cert"),
 				),
@@ -172,7 +172,7 @@ resource "opentelekomcloud_sfs_file_sharing_v2" "sfs_1" {
 	size=1
 	name="sfs-test1"
   	availability_zone="eu-de-01"
-	vpc_id="%s"
+	access_to="%s"
   	access_type="cert"
   	access_level="rw"
 	description="sfs_c2c_test-file"
@@ -185,7 +185,7 @@ resource "opentelekomcloud_sfs_file_sharing_v2" "sfs_1" {
 	size=2
 	name="sfs-test2"
   	availability_zone="eu-de-01"
-	vpc_id="%s"
+	access_to="%s"
   	access_type="cert"
   	access_level="rw"
 	description="sfs_c2c_test-file"
@@ -198,7 +198,7 @@ resource "opentelekomcloud_sfs_file_sharing_v2" "sfs_1" {
 	size=1
 	name="sfs-test1"
   	availability_zone="eu-de-01"
-	vpc_id="%s"
+	access_to="%s"
   	access_type="cert"
   	access_level="rw"
 	description="sfs_c2c_test-file"

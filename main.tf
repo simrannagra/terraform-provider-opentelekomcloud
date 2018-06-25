@@ -17,7 +17,7 @@ resource "opentelekomcloud_sfs_file_sharing_v2" "sfs1" {
     "key1"="value1"
     "key2"="value2"
   }
-  vpc_id="5232f396-d6cc-4a81-8de3-afd7a7ecdfd8" //vpcid
+  access_to="5232f396-d6cc-4a81-8de3-afd7a7ecdfd8" //vpcid
   access_level="rw"
   description="sfs_c2c_test-file"
   size=32
@@ -33,7 +33,7 @@ output "access_state" {
 }
 output "vpc_id" {
   //  value = "${data.opentelekomcloud_sfs_stack_v1.stacks.template_body["key_name"]}"
-  value = "${opentelekomcloud_sfs_file_sharing_v2.sfs1.vpc_id}"
+  value = "${opentelekomcloud_sfs_file_sharing_v2.sfs1.access_to}"
 }
 output "access_type" {
   //  value = "${data.opentelekomcloud_sfs_stack_v1.stacks.template_body["key_name"]}"

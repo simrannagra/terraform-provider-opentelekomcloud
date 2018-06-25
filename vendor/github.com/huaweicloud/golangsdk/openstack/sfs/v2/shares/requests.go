@@ -1,14 +1,201 @@
 package shares
 
 import (
-	"reflect"
+
 	"github.com/huaweicloud/golangsdk"
+
+	"reflect"
 	"github.com/huaweicloud/golangsdk/pagination"
 )
 
-var RequestOpts golangsdk.RequestOpts = golangsdk.RequestOpts{
-	MoreHeaders: map[string]string{"Content-Type": "application/json",
-		"X-Openstack-Manila-Api-Version": "2.9"},
+// GrantAccessOptsBuilder allows extensions to add additional parameters to the
+// GrantAccess request.
+type GrantAccessOptsBuilder interface {
+	ToGrantAccessMap() (map[string]interface{}, error)
+}
+
+// GrantAccessOpts contains the options for creation of an GrantAccess request.
+// For more information about these parameters, please, refer to the shared file systems API v2,
+// Share Actions, Grant Access documentation
+type GrantAccessOpts struct {
+	// The access rule type that can be "ip", "cert" or "user".
+	AccessType string `json:"access_type"`
+	// The value that defines the access that can be a valid format of IP, cert or user.
+	AccessTo string `json:"access_to"`
+	// The access level to the share is either "rw" or "ro".
+	AccessLevel string `json:"access_level"`
+}
+
+// ToGrantAccessMap assembles a request body based on the contents of a
+// GrantAccessOpts.
+func (opts GrantAccessOpts) ToGrantAccessMap() (map[string]interface{}, error) {
+	return golangsdk.BuildRequestBody(opts, "os-allow_access")
+}
+
+// GrantAccess will grant access to a Share based on the values in GrantAccessOpts. To extract
+// the GrantAccess object from the response, call the Extract method on the GrantAccessResult.
+// Client must have Microversion set; minimum supported microversion for GrantAccess is 2.7.
+func GrantAccess(client *golangsdk.ServiceClient, share_id string, opts GrantAccessOptsBuilder) (r GrantAccessResult) {
+	b, err := opts.ToGrantAccessMap()
+	if err != nil {
+		r.Err = err
+		return
+	}
+	_, r.Err = client.Post(rootURL(client, share_id), b, &r.Body, &golangsdk.RequestOpts{
+		OkCodes: []int{200},
+	})
+	return
+}
+
+// CreateOptsBuilder allows extensions to add additional parameters to the
+// Create request.
+type CreateOptsBuilder interface {
+	ToShareCreateMap() (map[string]interface{}, error)
+}
+
+// CreateOpts contains the options for create a Share. This object is
+// passed to shares.Create(). For more information about these parameters,
+// please refer to the Share object, or the shared file systems API v2
+// documentation
+type CreateOpts struct {
+	// Defines the share protocol to use
+	ShareProto string `json:"share_proto" required:"true"`
+	// Size in GB
+	Size int `json:"size" required:"true"`
+	// Defines the share name
+	Name string `json:"name,omitempty"`
+	// Share description
+	Description string `json:"description,omitempty"`
+	// ShareType defines the sharetype. If omitted, a default share type is used
+	ShareType string `json:"share_type,omitempty"`
+	// VolumeType is deprecated but supported. Either ShareType or VolumeType can be used
+	VolumeType string `json:"volume_type,omitempty"`
+	// The UUID from which to create a share
+	SnapshotID string `json:"snapshot_id,omitempty"`
+	// Determines whether or not the share is public
+	IsPublic bool `json:"is_public,omitempty"`
+	// Key value pairs of user defined metadata
+	Metadata map[string]string `json:"metadata,omitempty"`
+	// The UUID of the share network to which the share belongs to
+	ShareNetworkID string `json:"share_network_id,omitempty"`
+	// The UUID of the consistency group to which the share belongs to
+	ConsistencyGroupID string `json:"consistency_group_id,omitempty"`
+	// The availability zone of the share
+	AvailabilityZone string `json:"availability_zone,omitempty"`
+}
+
+// ToShareCreateMap assembles a request body based on the contents of a
+// CreateOpts.
+func (opts CreateOpts) ToShareCreateMap() (map[string]interface{}, error) {
+	return golangsdk.BuildRequestBody(opts, "share")
+}
+
+// Create will create a new Share based on the values in CreateOpts. To extract
+// the Share object from the response, call the Extract method on the
+// CreateResult.
+func Create(client *golangsdk.ServiceClient, opts CreateOptsBuilder) (r CreateResult) {
+	b, err := opts.ToShareCreateMap()
+	if err != nil {
+		r.Err = err
+		return
+	}
+	_, r.Err = client.Post(createURL(client), b, &r.Body, &golangsdk.RequestOpts{
+		OkCodes: []int{200, 201},
+	})
+	return
+}
+
+
+// ListAccessRights lists all access rules assigned to a Share based on its id. To extract
+// the AccessRight slice from the response, call the Extract method on the AccessRightsResult.
+// Client must have Microversion set; minimum supported microversion for ListAccessRights is 2.7.
+func ListAccessRights(client *golangsdk.ServiceClient, id string) (r AccessRightsResult) {
+	requestBody := map[string]interface{}{"os-access_list": nil}
+	_, r.Err = client.Post(rootURL(client, id), requestBody, &r.Body, &golangsdk.RequestOpts{
+		OkCodes: []int{200},
+	})
+	return
+}
+
+// Delete the Access Rule
+type DeleteAccessOptsBuilder interface {
+	ToDeleteAccessMap() (map[string]interface{}, error)
+}
+
+type DeleteAccessOpts struct {
+	// The access ID to be deleted
+	AccessID string `json:"access_id"`
+}
+
+func (opts DeleteAccessOpts) ToDeleteAccessMap() (map[string]interface{}, error) {
+	return golangsdk.BuildRequestBody(opts, "os-deny_access")
+}
+
+//Deletes the Access Rule
+func DeleteAccess(client *golangsdk.ServiceClient, share_id string, opts DeleteAccessOptsBuilder) (r DeleteAccessResult) {
+	b, err := opts.ToDeleteAccessMap()
+	if err != nil {
+		r.Err = err
+		return
+	}
+	_, r.Err = client.Post(rootURL(client, share_id), b, nil, &golangsdk.RequestOpts{
+		OkCodes: []int{202},
+	})
+	return
+}
+
+// Delete will delete an existing Share with the given UUID.
+func Delete(client *golangsdk.ServiceClient, id string) (r DeleteResult) {
+_, r.Err = client.Delete(resourceURL(client, id), nil)
+return
+}
+
+// UpdateOptsBuilder allows extensions to add additional parameters to the
+// Update request.
+type UpdateOptsBuilder interface {
+	ToShareUpdateMap() (map[string]interface{}, error)
+}
+
+// UpdateOpts contains the values used when updating a Share.
+type UpdateOpts struct {
+	// DisplayName is equivalent to Name. The API supports using both
+	// This is an inherited attribute from the block storage API
+	DisplayName string `json:"display_name" required:"true"`
+	// DisplayDescription is equivalent to Description. The API supports using bot
+	// This is an inherited attribute from the block storage API
+	DisplayDescription string `json:"display_description,omitempty"`
+}
+
+// ToShareUpdateMap builds an update body based on UpdateOpts.
+func (opts UpdateOpts) ToShareUpdateMap() (map[string]interface{}, error) {
+	return golangsdk.BuildRequestBody(opts, "share")
+}
+
+// Update allows shares to be updated. You can update the DisplayName, DisplayDescription.
+func Update(c *golangsdk.ServiceClient,id string, opts UpdateOptsBuilder) (r UpdateResult) {
+	b, err := opts.ToShareUpdateMap()
+	if err != nil {
+		r.Err = err
+		return
+	}
+	_, r.Err = c.Put(resourceURL(c, id), b, &r.Body, &golangsdk.RequestOpts{
+		OkCodes: []int{200},
+	})
+	return
+}
+
+//Gets the Mount/Export Locations of the SFS specified
+func GetExportLocations(client *golangsdk.ServiceClient, id string) (r GetExportLocationsResult) {
+client.Microversion="2.9"
+_, r.Err = client.Get(getMountLocationsURL(client, id), &r.Body, nil)
+return
+}
+
+// Get will get a single share with given UUID
+func Get(client *golangsdk.ServiceClient, id string) (r GetResult) {
+	_, r.Err = client.Get(resourceURL(client, id), &r.Body, nil)
+
+	return
 }
 
 // SortDir is a type for specifying in which direction to sort a list of Shares.
@@ -60,7 +247,7 @@ type ListOptsBuilder interface {
 // by a particular share attribute. SortDir sets the direction, and is either
 // `asc' or `desc'. Marker and Limit are used for pagination.
 type ListOpts struct {
-	ID       string
+	ID       string  `q:"id"`
 	Status   string  `q:"status"`
 	Name     string  `q:"name"`
 	Limit    int     `q:"limit"`
@@ -70,12 +257,29 @@ type ListOpts struct {
 	IsPublic bool    `q:"is_public"`
 }
 
+func FilterShareIdParam(opts ListOpts) (filter ListOpts) {
+
+	if opts.ID != "" {
+		filter.ID = opts.ID
+	}
+
+	filter.Name = opts.Name
+	filter.Status = opts.Status
+	filter.Limit = opts.Limit
+	filter.Offset = opts.Offset
+	filter.SortKey = opts.SortKey
+	filter.SortDir = opts.SortDir
+	filter.IsPublic = opts.IsPublic
+
+	return filter
+}
 
 // List returns a Pager which allows you to iterate over a collection of
 // share resources. It accepts a ListOpts struct, which allows you to
 // filter the returned collection for greater efficiency.
 func List(c *golangsdk.ServiceClient, opts ListOpts) ([]Share, error) {
-	q, err := golangsdk.BuildQueryString(&opts)
+	filter := FilterShareIdParam(opts)
+	q, err := golangsdk.BuildQueryString(&filter)
 	if err != nil {
 		return nil, err
 	}
@@ -128,194 +332,6 @@ func getStructField(v *Share, field string) string {
 	return string(f.String())
 }
 
-
-// CreateOptsBuilder allows extensions to add additional parameters to the
-// Create request.
-type CreateOptsBuilder interface {
-	ToShareCreateMap() (map[string]interface{}, error)
-}
-
-// CreateOpts contains the options for create a Share. This object is
-// passed to shares.Create(). For more information about these parameters,
-// please refer to the Share object, or the shared file systems API v2
-// documentation
-type CreateOpts struct {
-	// Defines the share protocol to use
-	ShareProto string `json:"share_proto" required:"true"`
-	// Size in GB
-	Size int `json:"size" required:"true"`
-	// Defines the share name
-	Name string `json:"name,omitempty"`
-	// Share description
-	Description string `json:"description,omitempty"`
-	// ShareType defines the sharetype. If omitted, a default share type is used
-	ShareType string `json:"share_type,omitempty"`
-	// The UUID from which to create a share
-	SnapshotID string `json:"snapshot_id,omitempty"`
-	// Determines whether or not the share is public
-	IsPublic bool `json:"is_public,omitempty"`
-	// Key value pairs of user defined metadata
-	Metadata map[string]string `json:"metadata,omitempty"`
-	// The UUID of the share network to which the share belongs to
-	ShareNetworkID string `json:"share_network_id,omitempty"`
-	// The UUID of the consistency group to which the share belongs to
-	ConsistencyGroupID string `json:"consistency_group_id,omitempty"`
-	// The availability zone of the share
-	AvailabilityZone string `json:"availability_zone,omitempty"`
-}
-
-// ToShareCreateMap assembles a request body based on the contents of a
-// CreateOpts.
-func (opts CreateOpts) ToShareCreateMap() (map[string]interface{}, error) {
-	return golangsdk.BuildRequestBody(opts, "share")
-}
-
-// Create will create a new Share based on the values in CreateOpts. To extract
-// the Share object from the response, call the Extract method on the
-// CreateResult.
-func Create(client *golangsdk.ServiceClient, opts CreateOptsBuilder) (r CreateResult) {
-	b, err := opts.ToShareCreateMap()
-	if err != nil {
-		r.Err = err
-		return
-	}
-	_, r.Err = client.Post(createURL(client), b, &r.Body, &golangsdk.RequestOpts{
-		OkCodes: []int{200, 201},
-	})
-	return
-}
-
-// UpdateOptsBuilder allows extensions to add additional parameters to the
-// Update request.
-type UpdateOptsBuilder interface {
-	ToShareUpdateMap() (map[string]interface{}, error)
-}
-
-// UpdateOpts contains the values used when updating a Share.
-type UpdateOpts struct {
-	// DisplayName is equivalent to Name. The API supports using both
-	// This is an inherited attribute from the block storage API
-	DisplayName string `json:"display_name" required:"true"`
-	// DisplayDescription is equivalent to Description. The API supports using bot
-	// This is an inherited attribute from the block storage API
-	DisplayDescription string `json:"display_description,omitempty"`
-}
-
-// ToShareUpdateMap builds an update body based on UpdateOpts.
-func (opts UpdateOpts) ToShareUpdateMap() (map[string]interface{}, error) {
-	return golangsdk.BuildRequestBody(opts, "share")
-}
-
-// Update allows shares to be updated. You can update the DisplayName, DisplayDescription.
-func Update(c *golangsdk.ServiceClient, id string, opts UpdateOptsBuilder) (r UpdateResult) {
-	b, err := opts.ToShareUpdateMap()
-	if err != nil {
-		r.Err = err
-		return
-	}
-	_, r.Err = c.Put(resourceURL(c, id), b, &r.Body, &golangsdk.RequestOpts{
-		OkCodes: []int{200},
-	})
-	return
-}
-
-// Get will get a single share with given UUID
-func Get(client *golangsdk.ServiceClient, id string) (r GetResult) {
-	_, r.Err = client.Get(resourceURL(client, id), &r.Body, nil)
-
-	return
-}
-
-// Delete will delete an existing Share with the given UUID.
-func Delete(client *golangsdk.ServiceClient, id string) (r DeleteResult) {
-	_, r.Err = client.Delete(resourceURL(client, id), nil)
-	return
-}
-
-// ListAccessRights lists all access rules assigned to a Share based on its id. To extract
-// the AccessRight slice from the response, call the Extract method on the AccessRightsResult.
-// Client must have Microversion set; minimum supported microversion for ListAccessRights is 2.7.
-func ListAccessRights(client *golangsdk.ServiceClient, share_id string) (r AccessRightsResult) {
-	requestBody := map[string]interface{}{"os-access_list": nil}
-	_, r.Err = client.Post(rootURL(client, share_id), requestBody, &r.Body, &golangsdk.RequestOpts{
-		OkCodes: []int{200},
-	})
-	return
-}
-
-// GrantAccessOptsBuilder allows extensions to add additional parameters to the
-// GrantAccess request.
-type GrantAccessOptsBuilder interface {
-	ToGrantAccessMap() (map[string]interface{}, error)
-}
-
-// GrantAccessOpts contains the options for creation of an GrantAccess request.
-// For more information about these parameters, please, refer to the shared file systems API v2,
-// Share Actions, Grant Access documentation
-type GrantAccessOpts struct {
-	// The access rule type that can be "ip", "cert" or "user".
-	AccessType string `json:"access_type"`
-	// The value that defines the access that can be a valid format of IP, cert or user.
-	AccessTo string `json:"access_to"`
-	// The access level to the share is either "rw" or "ro".
-	AccessLevel string `json:"access_level"`
-}
-
-// ToGrantAccessMap assembles a request body based on the contents of a
-// GrantAccessOpts.
-func (opts GrantAccessOpts) ToGrantAccessMap() (map[string]interface{}, error) {
-	return golangsdk.BuildRequestBody(opts, "os-allow_access")
-}
-
-// GrantAccess will grant access to a Share based on the values in GrantAccessOpts. To extract
-// the GrantAccess object from the response, call the Extract method on the GrantAccessResult.
-// Client must have Microversion set; minimum supported microversion for GrantAccess is 2.7.
-func GrantAccess(client *golangsdk.ServiceClient, share_id string, opts GrantAccessOptsBuilder) (r GrantAccessResult) {
-	b, err := opts.ToGrantAccessMap()
-	if err != nil {
-		r.Err = err
-		return
-	}
-	_, r.Err = client.Post(rootURL(client, share_id), b, &r.Body, &golangsdk.RequestOpts{
-		OkCodes: []int{200},
-	})
-	return
-}
-
-// Delete the Access Rule
-type DeleteAccessOptsBuilder interface {
-	ToDeleteAccessMap() (map[string]interface{}, error)
-}
-
-type DeleteAccessOpts struct {
-	// The access ID to be deleted
-	AccessID string `json:"access_id"`
-}
-
-func (opts DeleteAccessOpts) ToDeleteAccessMap() (map[string]interface{}, error) {
-	return golangsdk.BuildRequestBody(opts, "os-deny_access")
-}
-
-//Deletes the Access Rule
-func DeleteAccess(client *golangsdk.ServiceClient, share_id string, opts DeleteAccessOptsBuilder) (r DeleteAccessResult) {
-	b, err := opts.ToDeleteAccessMap()
-	if err != nil {
-		r.Err = err
-		return
-	}
-	_, r.Err = client.Post(rootURL(client, share_id), b, nil, &golangsdk.RequestOpts{
-		OkCodes: []int{202},
-	})
-	return
-}
-
-//Gets the Mount/Export Locations of the SFS specified
-func GetExportLocations(client *golangsdk.ServiceClient, id string) (r GetExportLocationsResult) {
-	reqOpt := &golangsdk.RequestOpts{OkCodes: []int{200},
-		MoreHeaders: RequestOpts.MoreHeaders}
-	_, r.Err = client.Get(getMountLocationsURL(client, id), &r.Body, reqOpt)
-	return
-}
 
 // ExpandOptsBuilder allows extensions to add additional parameters to the
 // Expand request.
@@ -394,3 +410,25 @@ func Shrink(client *golangsdk.ServiceClient, share_id string, opts ShrinkOptsBui
 	})
 	return
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -45,7 +45,7 @@ Example to Get share
 Example to Allow Access
 createSet:=shares.GrantAccessOpts{AccessLevel:"rw",AccessTo:"5232f396-d6cc-4a81-8de3-afd7a7ecdfd8",AccessType:"cert"}
 	access,err:=shares.GrantAccess(client,"dff2df5f-00e7-4517-ac32-1d0ab8dc0d68",createSet).Extract()
-	fmt.Println(access)
+	fmt.Println
 	if err != nil {
 			panic(err)
 		}
@@ -59,10 +59,7 @@ Example to Deny Access
 		}
 
 Example to Get Access Rule Detail
-	rule_list,err:= shares.ListAccessRights(client,"42381b5b-f8cb-445e-9465-89a718e071a7").ExtractAccessRights()
-	if err != nil {
-			panic(err)
-		}
+	rule_list := shares.ListAccessRights(client,"42381b5b-f8cb-445e-9465-89a718e071a7").ExtractAccessRights()
 	fmt.Println(rule_list)
 
 Example to Get Mount Location Details
