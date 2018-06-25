@@ -163,7 +163,7 @@ func resourceSFSFileSystemV2Read(d *schema.ResourceData, meta interface{}) error
 	config := meta.(*Config)
 	sfsClient, err := config.sfsV2Client(GetRegion(d, config))
 	if err != nil {
-		return fmt.Errorf("Error creating OpenTelekomCloud Vpc client: %s", err)
+		return fmt.Errorf("Error creating OpenTelekomCloud File Share: %s", err)
 	}
 
 	n, err := shares.Get(sfsClient, d.Id()).Extract()

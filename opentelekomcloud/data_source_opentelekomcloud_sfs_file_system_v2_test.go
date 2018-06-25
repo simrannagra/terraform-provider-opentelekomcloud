@@ -17,8 +17,10 @@ func TestAccOTCSFSFileSystemV2DataSource_basic(t *testing.T) {
 				Config: testAccOTCSFSV2DataSource_basic,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckSFSFileSystemV2DataSourceID("data.opentelekomcloud_sfs_file_sharing_v2.shares"),
-					resource.TestCheckResourceAttr("data.opentelekomcloud_sfs_file_sharing_v2.shares", "name", "sfs-c2c-1"),
+					resource.TestCheckResourceAttr("data.opentelekomcloud_sfs_file_sharing_v2.shares", "name", "sfs-terraform-test"),
+
 					resource.TestCheckResourceAttr("data.opentelekomcloud_sfs_file_sharing_v2.shares", "status", "available"),
+
 					resource.TestCheckResourceAttr("data.opentelekomcloud_sfs_file_sharing_v2.shares", "size", "1"),
 				),
 			},
@@ -45,7 +47,7 @@ var testAccOTCSFSV2DataSource_basic = `
 resource "opentelekomcloud_sfs_file_sharing_v2" "sfs_1" {
 	share_proto = "NFS"
 	size=1
-	name="sfs-c2c-1"
+	name="sfs-terraform-test"
   	availability_zone="eu-de-01"
 	access_to="%s"
   	access_type="cert"

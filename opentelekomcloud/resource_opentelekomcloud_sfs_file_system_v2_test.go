@@ -9,7 +9,6 @@ import (
 	"github.com/huaweicloud/golangsdk/openstack/sfs/v2/shares"
 )
 
-// PASS
 func TestAccOTCSFSFileSystemV2_basic(t *testing.T) {
 	var share shares.Share
 
@@ -23,39 +22,7 @@ func TestAccOTCSFSFileSystemV2_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckOTCSFSFileSystemV2Exists("opentelekomcloud_sfs_file_sharing_v2.sfs_1", &share),
 					resource.TestCheckResourceAttr(
-						"opentelekomcloud_sfs_file_sharing_v2.sfs_1", "name", "sfs-test1"),
-					resource.TestCheckResourceAttr(
-						"opentelekomcloud_sfs_file_sharing_v2.sfs_1", "share_proto", "NFS"),
-					resource.TestCheckResourceAttr(
-						"opentelekomcloud_sfs_file_sharing_v2.sfs_1", "status", "available"),
-					resource.TestCheckResourceAttr(
-						"opentelekomcloud_sfs_file_sharing_v2.sfs_1", "size", "1"),
-					resource.TestCheckResourceAttr(
-						"opentelekomcloud_sfs_file_sharing_v2.sfs_1", "access_level", "rw"),
-					resource.TestCheckResourceAttr(
-						"opentelekomcloud_sfs_file_sharing_v2.sfs_1", "access_to", OS_VPC_ID),
-					resource.TestCheckResourceAttr(
-						"opentelekomcloud_sfs_file_sharing_v2.sfs_1", "access_type", "cert"),
-				),
-			},
-		},
-	})
-}
-
-func TestAccOTCSFSFileSystemV2_update(t *testing.T) {
-	var share shares.Share
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckOTCSFSFileSystemV2Destroy,
-		Steps: []resource.TestStep{
-			resource.TestStep{
-				Config: testAccSFSFileSystemV2_basic,
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckOTCSFSFileSystemV2Exists("opentelekomcloud_sfs_file_sharing_v2.sfs_1", &share),
-					resource.TestCheckResourceAttr(
-						"opentelekomcloud_sfs_file_sharing_v2.sfs_1", "name", "sfs-test1"),
+						"opentelekomcloud_sfs_file_sharing_v2.sfs_1", "name", "sfs-terraform-test"),
 					resource.TestCheckResourceAttr(
 						"opentelekomcloud_sfs_file_sharing_v2.sfs_1", "share_proto", "NFS"),
 					resource.TestCheckResourceAttr(
@@ -170,7 +137,7 @@ var testAccSFSFileSystemV2_basic = fmt.Sprintf(`
 resource "opentelekomcloud_sfs_file_sharing_v2" "sfs_1" {
 	share_proto = "NFS"
 	size=1
-	name="sfs-test1"
+	name="sfs-terraform-test"
   	availability_zone="eu-de-01"
 	access_to="%s"
   	access_type="cert"
@@ -183,7 +150,7 @@ var testAccSFSFileSystemV2_update = fmt.Sprintf(`
 resource "opentelekomcloud_sfs_file_sharing_v2" "sfs_1" {
 	share_proto = "NFS"
 	size=2
-	name="sfs-test2"
+	name="sfs-terraform-test2"
   	availability_zone="eu-de-01"
 	access_to="%s"
   	access_type="cert"
@@ -196,7 +163,7 @@ var testAccSFSFileSystemV2_timeout = fmt.Sprintf(`
 resource "opentelekomcloud_sfs_file_sharing_v2" "sfs_1" {
 	share_proto = "NFS"
 	size=1
-	name="sfs-test1"
+	name="sfs-terraform-test"
   	availability_zone="eu-de-01"
 	access_to="%s"
   	access_type="cert"
