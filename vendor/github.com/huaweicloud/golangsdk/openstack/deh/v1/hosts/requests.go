@@ -1,11 +1,11 @@
 package hosts
+
 import (
 	"reflect"
 
 	"github.com/huaweicloud/golangsdk"
 	"github.com/huaweicloud/golangsdk/pagination"
 )
-
 
 // AllocateOptsBuilder allows extensions to add additional parameters to the
 // Allocate request.
@@ -47,7 +47,7 @@ type UpdateOptsBuilder interface {
 
 // UpdateOpts contains all the values needed to update a DeH.
 type UpdateOpts struct {
-	Name          string `json:"name"`
+	Name          string `json:"name,omitempty"`
 	AutoPlacement string `json:"auto_placement,omitempty"`
 }
 
@@ -56,7 +56,7 @@ func (opts UpdateOpts) ToDeHUpdateMap() (map[string]interface{}, error) {
 	return golangsdk.BuildRequestBody(opts, "dedicated_host")
 }
 
-// Update accepts a UpdateOpts struct and uses the values to update a DeH.
+// Update accepts a UpdateOpts struct and uses the values to update a DeH.The response code from api is 204
 func Update(c *golangsdk.ServiceClient, hostID string, opts UpdateOptsBuilder) (r UpdateResult) {
 	b, err := opts.ToDeHUpdateMap()
 	if err != nil {
@@ -106,6 +106,7 @@ type ListOpts struct {
 type ListOptsBuilder interface {
 	ToHostListQuery() (string, error)
 }
+
 // Filters out hosts parameters
 func FilterHostParam(opts ListOpts) (filter ListOpts) {
 
@@ -195,7 +196,6 @@ func Get(c *golangsdk.ServiceClient, id string) (r GetResult) {
 	return
 }
 
-
 // ListServerOpts allows the filtering and sorting of paginated collections through
 // the API. Filtering is achieved by passing in struct field values that map to
 // the server attributes you want to see returned. Marker and Limit are used
@@ -216,9 +216,7 @@ type ListServerOpts struct {
 	Status string `json:"status"`
 	// UserID uniquely identifies the user account owning the tenant.
 	UserID string `json:"user_id"`
-
 }
-
 
 func FilterServerParam(opts ListServerOpts) (filter ListServerOpts) {
 
