@@ -113,6 +113,7 @@ func dataSourceDEHServersV1Read(d *schema.ResourceData, meta interface{}) error 
 	d.Set("flavor", DehServer.Flavor)
 	d.Set("addresses", DehServer.Addresses)
 	d.Set("metadata", DehServer.Metadata)
+	d.Set("tenant_id", DehServer.TenantID)
 	d.Set("region", GetRegion(d, config))
 	networks, err := flattenInstanceNetwork(d, meta)
 	if err != nil {
