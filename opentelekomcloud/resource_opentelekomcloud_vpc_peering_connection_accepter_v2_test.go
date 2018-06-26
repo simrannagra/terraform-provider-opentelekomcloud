@@ -8,6 +8,7 @@ import (
 	"regexp"
 )
 
+// PASS
 func TestAccOTCVpcPeeringConnectionAccepterV2_basic(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{

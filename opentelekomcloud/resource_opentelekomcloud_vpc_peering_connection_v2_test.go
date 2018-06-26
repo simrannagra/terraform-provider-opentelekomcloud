@@ -9,6 +9,7 @@ import (
 	"github.com/huaweicloud/golangsdk/openstack/networking/v2/peerings"
 )
 
+// PASS
 func TestAccOTCVpcPeeringConnectionV2_basic(t *testing.T) {
 	var peering peerings.Peering
 

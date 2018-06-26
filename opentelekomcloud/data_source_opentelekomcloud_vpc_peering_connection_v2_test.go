@@ -7,6 +7,7 @@ import (
 	"testing"
 )
 
+// PASS
 func TestAccOTCVpcPeeringConnectionV2DataSource_basic(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{

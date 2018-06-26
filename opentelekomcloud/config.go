@@ -362,6 +362,12 @@ func (c *Config) networkingV2Client(region string) (*gophercloud.ServiceClient, 
 	})
 }
 
+func (c *Config) networkingHwV2Client(region string) (*golangsdk.ServiceClient, error) {
+	return huaweisdk.NewNetworkV2(c.HwClient, golangsdk.EndpointOpts{
+		Region:       c.determineRegion(region),
+		Availability: c.getHwEndpointType(),
+	})
+}
 func (c *Config) objectStorageV1Client(region string) (*gophercloud.ServiceClient, error) {
 	// If Swift Authentication is being used, return a swauth client.
 	if c.Swauth {
